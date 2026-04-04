@@ -10,20 +10,17 @@ export default async function handler(req, res) {
 
   const { email, username, password } = req.body;
 
-  /**
-   * THE SECRET GATE (Case-Insensitive)
-   * ^aps      -> Must start with 'aps' (any case)
-   * .* -> Can have a dot, numbers, or letters after 'aps'
-   * @amity... -> Must end with the school domain
-   * /i        -> Makes the whole thing Case-Insensitive
-   */
-  const isStudent = /^aps.*@amitysharjah\.ae$/i.test(email);
+  // IMPROVED REGEX: 
+  // 1. Case-insensitive (i flag)
+  // 2. Starts with aps
+  // 3. Allows dots, numbers, or letters immediately after
+  const isStudent = /^aps[a-z0-9._%+-]*@amitysharjah\.ae$/i.test(email);
 
   if (!isStudent) {
-    return res.status(403).json({ error: "Access Denied. Use your school email." });
+    console.log("Rejected Email:", email); // This shows up in your Vercel logs
+    return res.status(403).json({ error: "Access Denied. Use school email." });
   }
 
-  // 1. Add to Supabase Auth (Status: Unconfirmed)
   const { data, error: authError } = await supabase.auth.signUp({
     email: email,
     password: password,
@@ -31,20 +28,10 @@ export default async function handler(req, res) {
 
   if (authError) return res.status(400).json({ error: authError.message });
 
-  // 2. Add to your 'profiles' table with is_verified = false
   if (data.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert([
-        { 
-          id: data.user.id, 
-          username: username, 
-          email: email, 
-          is_verified: false 
-        }
-      ]);
-
-    if (profileError) console.error("Profile Error:", profileError.message);
+    await supabase.from('profiles').upsert([
+      { id: data.user.id, username, email, is_verified: false }
+    ]);
   }
 
   return res.status(200).json({ message: "In the waiting line." });
