@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSDROA.connect | Amity Sharjah</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="logo">PSDROA<span>.connect</span></div>
+        <button class="nav-btn" onclick="openModal()">Let's Get Started</button>
+    </nav>
+
+    <main class="hero">
+        <h1>Connect without<br>the faculty gaze.</h1>
+        <p>The private digital square for Amity Sharjah students.</p>
+    </main>
+
+    <div id="modalOverlay" class="overlay">
+        <div class="modal">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="formContainer">
+                <h2>Request Access</h2>
+                <p class="form-subtext">Verified students only. No staff permitted.</p>
+                <div id="errorBox" class="error">Access denied. Invalid credentials.</div>
+                
+                <input type="text" id="regUsername" placeholder="Create Username">
+                <input type="email" id="regEmail" placeholder="aps... @amitysharjah.ae">
+                <button class="submit-btn" onclick="submitRegistration()">Verify & Request</button>
+            </div>
+
+            <div id="waitMessage" class="status-box">
+                <div class="icon">⏳</div>
+                <h3>Request Submitted</h3>
+                <p>We've sent your verification to <strong>inquiries@psdroa.co.uk</strong>.</p>
+                <p>Your account is currently <strong>Pending Approval</strong>. Please wait 24 hours for activation.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() { document.getElementById('modalOverlay').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+        async function submitRegistration() {
+            const email = document.getElementById('regEmail').value;
+            const username = document.getElementById('regUsername').value;
+            const errorBox = document.getElementById('errorBox');
+
+            // Call the secret API
+            const response = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, username })
+            });
+
+            if (response.ok) {
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('waitMessage').style.display = 'block';
+            } else {
+                errorBox.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
