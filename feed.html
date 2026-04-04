@@ -2,67 +2,140 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home / PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="feed-body">
-    <div class="feed-layout">
+
+    <div class="feed-container">
         <aside class="sidebar-left">
             <div class="nav-brand">P.</div>
-            <nav>
-                <a href="#" class="active">Home</a>
-                <a href="#">Explore</a>
-                <a href="#" onclick="handleLogout()">Logout</a>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active"><span>🏠</span> Home</a>
+                <a href="#" class="nav-item"><span>🔔</span> Notifications</a>
+                <a href="#" class="nav-item"><span>👤</span> Profile</a>
             </nav>
+            <button class="logout-btn" onclick="handleLogout()">Log Out</button>
         </aside>
 
         <main class="timeline">
-            <header class="feed-header"><h2>Home</h2></header>
-            <div class="post-box">
-                <textarea id="postInput" placeholder="What's happening?"></textarea>
-                <button onclick="createPost()">Post</button>
+            <header class="timeline-header">
+                <h2>Home</h2>
+            </header>
+
+            <div class="post-creator">
+                <div class="avatar-placeholder"></div>
+                <div class="input-wrapper">
+                    <textarea id="postInput" placeholder="What's happening in Amity?"></textarea>
+                    <div class="post-footer">
+                        <div class="post-icons">
+                            <span>🖼️</span> <span>📊</span> <span>📍</span>
+                        </div>
+                        <button class="post-submit" onclick="createPost()">Post</button>
+                    </div>
+                </div>
             </div>
-            <div id="postsContainer"></div>
+
+            <div id="postsFeed">
+                <div class="loading-spinner">Fetching the circle...</div>
+            </div>
         </main>
 
         <aside class="sidebar-right">
-            <div class="trending">
+            <div class="search-container">
+                <input type="text" placeholder="Search Connect">
+            </div>
+            <div class="trending-box">
                 <h3>What's Trending</h3>
-                <p>#AmitySharjah</p>
-                <p>#ExamSeason</p>
+                <div class="trend-card">
+                    <small>Trending in Sharjah</small>
+                    <p>#AmitySharjah</p>
+                    <small>1,240 Posts</small>
+                </div>
+                <div class="trend-card">
+                    <small>Academic Hub</small>
+                    <p>#ExamPreparation</p>
+                    <small>856 Posts</small>
+                </div>
             </div>
         </aside>
     </div>
 
     <script>
-        const supabase = supabase.createClient('https://riyqmlarvhipiwrhvuiw.supabase.co', 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E');
+        // 1. Initialize Supabase
+        const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
+        const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
+        const supabase = supabase.createClient(_URL, _KEY);
 
-        async function loadPosts() {
-            const { data, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
-            const container = document.getElementById('postsContainer');
-            container.innerHTML = data.map(p => `
-                <div class="post">
-                    <strong>@Student</strong>
-                    <p>${p.content}</p>
+        // 2. Auth Check: Kick out anyone not logged in
+        async function checkSession() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                fetchPosts();
+            }
+        }
+
+        // 3. Fetch Posts from SQL Table
+        async function fetchPosts() {
+            const { data, error } = await supabase
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            const feedContainer = document.getElementById('postsFeed');
+            
+            if (error) {
+                feedContainer.innerHTML = `<p class="error-text">Error loading feed. Verify your account.</p>`;
+                return;
+            }
+
+            feedContainer.innerHTML = data.map(post => `
+                <div class="post-card">
+                    <div class="avatar-placeholder"></div>
+                    <div class="post-content">
+                        <div class="post-user-info">
+                            <strong>Student</strong> <small>· ${new Date(post.created_at).toLocaleTimeString()}</small>
+                        </div>
+                        <p class="post-text">${post.content}</p>
+                        <div class="post-interactions">
+                            <span>💬 0</span> <span>🔁 0</span> <span>❤️ 0</span>
+                        </div>
+                    </div>
                 </div>
             `).join('');
         }
 
+        // 4. Create a New Post
         async function createPost() {
             const content = document.getElementById('postInput').value;
+            if (!content.trim()) return;
+
             const { data: { user } } = await supabase.auth.getUser();
-            await supabase.from('posts').insert([{ content, user_id: user.id }]);
-            document.getElementById('postInput').value = '';
-            loadPosts();
+
+            const { error } = await supabase
+                .from('posts')
+                .insert([{ content: content, user_id: user.id }]);
+
+            if (error) {
+                alert("Only verified students can post. Check back in 24h.");
+            } else {
+                document.getElementById('postInput').value = '';
+                fetchPosts(); // Refresh feed
+            }
         }
 
+        // 5. Logout
         async function handleLogout() {
             await supabase.auth.signOut();
             window.location.href = 'index.html';
         }
 
-        loadPosts();
+        // Run on load
+        checkSession();
     </script>
 </body>
 </html>
