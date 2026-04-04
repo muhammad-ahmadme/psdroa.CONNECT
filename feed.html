@@ -2,66 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSDROA.connect | Amity Sharjah</title>
+    <title>Home / PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-    <nav>
-        <div class="logo">PSDROA<span>.connect</span></div>
-        <button class="nav-btn" onclick="openModal()">Let's Get Started</button>
-    </nav>
+<body class="feed-body">
+    <div class="feed-layout">
+        <aside class="sidebar-left">
+            <div class="nav-brand">P.</div>
+            <nav>
+                <a href="#" class="active">Home</a>
+                <a href="#">Explore</a>
+                <a href="#" onclick="handleLogout()">Logout</a>
+            </nav>
+        </aside>
 
-    <main class="hero">
-        <h1>Connect without<br>the faculty gaze.</h1>
-        <p>The private digital square for Amity Sharjah students.</p>
-    </main>
-
-    <div id="modalOverlay" class="overlay">
-        <div class="modal">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="formContainer">
-                <h2>Request Access</h2>
-                <p class="form-subtext">Verified students only. No staff permitted.</p>
-                <div id="errorBox" class="error">Access denied. Invalid credentials.</div>
-                
-                <input type="text" id="regUsername" placeholder="Username">
-                <input type="email" id="regEmail" placeholder="aps... @amitysharjah.ae">
-                <input type="password" id="regPassword" placeholder="Create Secure Password">
-                <button class="submit-btn" onclick="submitRegistration()">Verify & Request</button>
+        <main class="timeline">
+            <header class="feed-header"><h2>Home</h2></header>
+            <div class="post-box">
+                <textarea id="postInput" placeholder="What's happening?"></textarea>
+                <button onclick="createPost()">Post</button>
             </div>
+            <div id="postsContainer"></div>
+        </main>
 
-            <div id="waitMessage" class="status-box">
-                <div class="icon">⏳</div>
-                <h3>Request Submitted</h3>
-                <p>Sent to <strong>inquiries@psdroa.co.uk</strong>.</p>
-                <p>Your account is <strong>Pending Approval</strong>. Please wait 24 hours for activation.</p>
+        <aside class="sidebar-right">
+            <div class="trending">
+                <h3>What's Trending</h3>
+                <p>#AmitySharjah</p>
+                <p>#ExamSeason</p>
             </div>
-        </div>
+        </aside>
     </div>
 
     <script>
-        function openModal() { document.getElementById('modalOverlay').style.display = 'flex'; }
-        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+        const supabase = supabase.createClient('https://riyqmlarvhipiwrhvuiw.supabase.co', 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E');
 
-        async function submitRegistration() {
-            const email = document.getElementById('regEmail').value;
-            const username = document.getElementById('regUsername').value;
-            const password = document.getElementById('regPassword').value;
-
-            const response = await fetch('/api/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, username, password })
-            });
-
-            if (response.ok) {
-                document.getElementById('formContainer').style.display = 'none';
-                document.getElementById('waitMessage').style.display = 'block';
-            } else {
-                document.getElementById('errorBox').style.display = 'block';
-            }
+        async function loadPosts() {
+            const { data, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = data.map(p => `
+                <div class="post">
+                    <strong>@Student</strong>
+                    <p>${p.content}</p>
+                </div>
+            `).join('');
         }
+
+        async function createPost() {
+            const content = document.getElementById('postInput').value;
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase.from('posts').insert([{ content, user_id: user.id }]);
+            document.getElementById('postInput').value = '';
+            loadPosts();
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        loadPosts();
     </script>
 </body>
 </html>
