@@ -2,45 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home / PSDROA.connect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSDROA.connect | Amity Sharjah</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="feed-body">
-    <div class="feed-container">
-        <aside class="sidebar">
-            <div class="nav-links">
-                <div class="logo-small">P.</div>
-                <a href="#" class="active">Home</a>
-                <a href="#">Explore</a>
-                <a href="#">Notifications</a>
-                <a href="#">Profile</a>
-            </div>
-            <button class="post-btn">Post</button>
-        </aside>
+<body>
+    <nav>
+        <div class="logo">PSDROA<span>.connect</span></div>
+        <button class="nav-btn" onclick="openModal()">Let's Get Started</button>
+    </nav>
 
-        <main class="timeline">
-            <header><h2>Home</h2></header>
-            <div class="post-box">
-                <input type="text" placeholder="What's happening in Amity?">
-                <button class="submit-post">Post</button>
-            </div>
-            <div class="tweet">
-                <div class="avatar"></div>
-                <div class="content">
-                    <strong>Student_Alpha</strong>
-                    <p>Finally a place where we can talk freely without the coordinators watching. #PSDROA</p>
-                </div>
-            </div>
-        </main>
+    <main class="hero">
+        <h1>Connect without<br>the faculty gaze.</h1>
+        <p>The private digital square for Amity Sharjah students.</p>
+    </main>
 
-        <aside class="widgets">
-            <div class="search-bar"><input type="text" placeholder="Search Connect"></div>
-            <div class="trending">
-                <h3>What's Trending</h3>
-                <p>#AmitySharjah</p>
-                <p>#ExamWeek</p>
+    <div id="modalOverlay" class="overlay">
+        <div class="modal">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="formContainer">
+                <h2>Request Access</h2>
+                <p class="form-subtext">Verified students only. No staff permitted.</p>
+                <div id="errorBox" class="error">Access denied. Invalid credentials.</div>
+                
+                <input type="text" id="regUsername" placeholder="Username">
+                <input type="email" id="regEmail" placeholder="aps... @amitysharjah.ae">
+                <input type="password" id="regPassword" placeholder="Create Secure Password">
+                <button class="submit-btn" onclick="submitRegistration()">Verify & Request</button>
             </div>
-        </aside>
+
+            <div id="waitMessage" class="status-box">
+                <div class="icon">⏳</div>
+                <h3>Request Submitted</h3>
+                <p>Sent to <strong>inquiries@psdroa.co.uk</strong>.</p>
+                <p>Your account is <strong>Pending Approval</strong>. Please wait 24 hours for activation.</p>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function openModal() { document.getElementById('modalOverlay').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+        async function submitRegistration() {
+            const email = document.getElementById('regEmail').value;
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+
+            const response = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, username, password })
+            });
+
+            if (response.ok) {
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('waitMessage').style.display = 'block';
+            } else {
+                document.getElementById('errorBox').style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>
