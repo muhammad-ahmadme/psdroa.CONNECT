@@ -1,21 +1,36 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email, username } = req.body;
+  const { email, username, password } = req.body;
 
-    // THE SECRET RULE:
-    // 1. Starts with 'aps' (any case)
-    // 2. Ends with '@amitysharjah.ae'
-    const studentRegex = /^aps.*@amitysharjah\.ae$/i;
+  // THE SECRET GATE (Strictly Hidden from Browsers)
+  const isStudent = /^aps.*@amitysharjah\.ae$/i.test(email);
 
-    if (!studentRegex.test(email)) {
-        // We reject without explaining why to keep the rule hidden
-        return res.status(403).json({ success: false });
+  if (!isStudent) {
+    // Vague error so teachers don't know why they failed
+    return res.status(403).json({ error: "Verification Failed." });
+  }
+
+  // Create the "Pending" account in Supabase
+  const { data, error } = await supabase.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: {
+        display_name: username,
+        is_verified: false 
+      }
     }
+  });
 
-    // In a real setup, you would use 'Nodemailer' here to send the 
-    // email to inquiries@psdroa.co.uk automatically.
-    console.log(`New Student Request: ${username} (${email})`);
+  if (error) return res.status(400).json({ error: error.message });
 
-    return res.status(200).json({ success: true });
+  return res.status(200).json({ message: "Request received." });
 }
