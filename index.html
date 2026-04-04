@@ -7,39 +7,49 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav>
+    <nav class="top-nav">
         <div class="logo">PSDROA<span>.connect</span></div>
+        <a href="login.html" class="nav-link-btn">Sign In</a>
     </nav>
 
-    <main class="hero" id="mainHero">
-        <div id="requestForm">
+    <main class="container">
+        <div id="requestForm" class="auth-box">
             <h1>Join the circle.</h1>
-            <p>Verified Amity Sharjah students only.</p>
+            <p class="subtitle">Verified Amity Sharjah students only.</p>
             
-            <div id="errorBox" style="color: #f4212e; display: none; margin-bottom: 10px;">
-                Invalid credentials. Access denied.
-            </div>
+            <div id="errorBox" class="error-banner">Invalid credentials. Access denied.</div>
 
-            <input type="text" id="username" placeholder="Username">
-            <input type="email" id="email" placeholder="aps... @amitysharjah.ae">
-            <input type="password" id="password" placeholder="Create Password">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="email" id="email" placeholder="aps... @amitysharjah.ae" required>
+                <input type="password" id="password" placeholder="Create Password" required>
+            </div>
             
-            <button class="nav-btn" onclick="submitToWaitingLine()">Let's Get Started</button>
+            <button class="main-btn" onclick="submitToWaitingLine()">Let's Get Started</button>
+            <p class="footer-text">By joining, you agree to the student code of conduct.</p>
         </div>
 
-        <div id="waitingLine" style="display: none; text-align: center;">
-            <h1 style="font-size: 4rem;">⏳</h1>
+        <div id="waitingLine" class="status-card" style="display: none;">
+            <div class="icon-clock">⏳</div>
             <h2>You're in the waiting line.</h2>
-            <p>Your request has been sent to <strong>inquiries@psdroa.co.uk</strong>.</p>
-            <p>Please wait <strong>24 hours</strong> for manual approval by the admin.</p>
+            <p>Your request has been logged for <strong>inquiries@psdroa.co.uk</strong>.</p>
+            <p class="highlight">Please wait 24 hours for manual approval.</p>
+            <button class="secondary-btn" onclick="location.reload()">Back to Home</button>
         </div>
     </main>
 
     <script>
         async function submitToWaitingLine() {
-            const email = document.getElementById('email').value;
-            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
+            const errorBox = document.getElementById('errorBox');
+
+            if(!email || !username || !password) {
+                errorBox.innerText = "Please fill in all fields.";
+                errorBox.style.display = 'block';
+                return;
+            }
 
             const response = await fetch('/api/verify', {
                 method: 'POST',
@@ -51,7 +61,8 @@
                 document.getElementById('requestForm').style.display = 'none';
                 document.getElementById('waitingLine').style.display = 'block';
             } else {
-                document.getElementById('errorBox').style.display = 'block';
+                errorBox.style.display = 'block';
+                errorBox.innerText = "Access denied. Check your school email format.";
             }
         }
     </script>
