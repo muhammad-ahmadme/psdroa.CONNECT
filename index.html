@@ -21,7 +21,7 @@
 
             <div class="input-group">
                 <input type="text" id="username" placeholder="Username" required>
-                <input type="email" id="email" placeholder="aps... @amitysharjah.ae" required>
+                <input type="text" id="email" placeholder="aps.name@amitysharjah.ae" required>
                 <input type="password" id="password" placeholder="Create Password" required>
             </div>
             
@@ -51,6 +51,7 @@
                 return;
             }
 
+            // The 'APS' check happens HERE in the backend, not the browser.
             const response = await fetch('/api/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -62,6 +63,7 @@
                 document.getElementById('waitingLine').style.display = 'block';
             } else {
                 errorBox.style.display = 'block';
+                // If it fails, it's because the API rejected the email format.
                 errorBox.innerText = "Access denied. Check your school email format.";
             }
         }
