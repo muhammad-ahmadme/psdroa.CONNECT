@@ -1,77 +1,127 @@
 :root {
-    --bg: #000;
-    --border: #2f3336;
-    --blue: #1d9bf0;
-    --gray: #71767b;
+    --bg-black: #000000;
+    --border-gray: #2f3336;
+    --twitter-blue: #1d9bf0;
+    --text-main: #e7e9ea;
+    --text-dim: #71767b;
+    --error-red: #f4212e;
 }
 
 body {
-    background-color: var(--bg);
-    color: white;
+    background-color: var(--bg-black);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
-    font-family: sans-serif;
-}
-
-/* Nav & Hero */
-nav {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px 50px;
-    align-items: center;
-}
-
-.logo { font-size: 1.5rem; font-weight: 900; }
-.logo span { color: var(--blue); }
-
-.nav-btn {
-    background: white; color: black;
-    padding: 10px 20px; border-radius: 20px;
-    font-weight: bold; cursor: pointer; border: none;
-}
-
-.hero {
-    height: 80vh;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Nav */
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.logo { font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; }
+.logo span { color: var(--twitter-blue); }
+
+.nav-link-btn {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid var(--text-dim);
+    padding: 8px 20px;
+    border-radius: 99px;
+    transition: 0.2s;
+}
+
+.nav-link-btn:hover { background: #ffffff1a; }
+
+/* Layouts */
+.container {
+    flex: 1;
+    display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+}
+
+.center-body { justify-content: center; align-items: center; display: flex; height: 100vh; }
+
+/* Auth Boxes */
+.auth-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
     text-align: center;
 }
 
-.hero h1 { font-size: 5rem; margin: 0; letter-spacing: -2px; }
+.auth-box h1 { font-size: 3rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -1px; }
+.subtitle { color: var(--text-dim); margin-bottom: 30px; font-size: 1.1rem; }
 
-/* Modal Styles */
-.overlay {
-    display: none;
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(91, 112, 131, 0.4);
-    justify-content: center; align-items: center;
-}
-
-.modal {
-    background: black; border: 1px solid var(--border);
-    padding: 40px; border-radius: 16px; width: 400px; position: relative;
-}
-
-.error { color: #f4212e; display: none; margin-bottom: 10px; }
+/* Inputs */
+.input-group { margin-bottom: 20px; }
 
 input {
-    width: 100%; padding: 15px; margin-bottom: 10px;
-    background: black; border: 1px solid var(--border);
-    color: white; border-radius: 4px; box-sizing: border-box;
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--border-gray);
+    color: white;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    box-sizing: border-box;
 }
 
-.submit-btn {
-    width: 100%; padding: 15px; background: white;
-    border-radius: 99px; font-weight: bold; cursor: pointer;
+input:focus { border-color: var(--twitter-blue); outline: none; }
+
+/* Buttons */
+.main-btn {
+    width: 100%;
+    padding: 15px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
-/* Status Box */
-.status-box { display: none; text-align: center; }
-.status-box .icon { font-size: 3rem; margin-bottom: 10px; }
+.main-btn:hover { background: #d7dbdc; }
 
-/* Feed Layout (Simplified) */
-.feed-container { display: grid; grid-template-columns: 275px 1fr 350px; max-width: 1200px; margin: 0 auto; }
-.timeline { border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 100vh; }
-.tweet { padding: 15px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; }
-.avatar { width: 48px; height: 48px; background: #333; border-radius: 50%; }
+.secondary-btn {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-gray);
+    padding: 10px 20px;
+    border-radius: 99px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* Error/Status */
+.error-banner {
+    background: var(--error-red);
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: none;
+    font-size: 0.9rem;
+}
+
+.status-card { text-align: center; }
+.icon-clock { font-size: 4rem; margin-bottom: 20px; }
+.highlight { color: var(--twitter-blue); font-weight: 600; }
+
+.footer-text { font-size: 0.8rem; color: var(--text-dim); margin-top: 25px; }
+.footer-text a { color: var(--twitter-blue); text-decoration: none; }
+
+.logo-center { font-size: 3rem; font-weight: 900; color: var(--twitter-blue); margin-bottom: 20px; }
