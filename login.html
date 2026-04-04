@@ -1,55 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login / PSDROA.connect</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body class="center-body">
-    <div class="auth-box login-box">
-        <div class="logo-center">P.</div>
-        <h2>Sign in to PSDROA</h2>
-        
-        <div id="loginError" class="error-banner"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        <div class="input-group">
-            <input type="email" id="loginEmail" placeholder="School Email">
-            <input type="password" id="loginPass" placeholder="Password">
-        </div>
-        
-        <button class="main-btn" onclick="handleSignIn()">Log In</button>
-        
-        <p class="footer-text">New here? <a href="index.html">Request Access</a></p>
-    </div>
+<script>
+(function() {
+    // We use internal names to avoid "Already Declared" errors
+    const PROJECT_URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
+    const ANON_KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
+    
+    // Initialize the client
+    const _supabase = supabase.createClient(PROJECT_URL, ANON_KEY);
 
-    <script>
-        const supabase = supabase.createClient('https://riyqmlarvhipiwrhvuiw.supabase.co', 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E');
+    // We attach this to 'window' so your HTML button onclick="handleSignIn()" can find it
+    window.handleSignIn = async function() {
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPass').value;
+        const errorBox = document.getElementById('loginError');
 
-        async function handleSignIn() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPass').value;
-            const errorBox = document.getElementById('loginError');
+        // Reset UI
+        errorBox.style.display = 'none';
+        console.log("Attempting login for:", email);
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        try {
+            // 1. Authenticate with Supabase
+            const { data, error: authError } = await _supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
 
-            if (error) {
-                errorBox.innerText = "Invalid credentials.";
+            if (authError) {
+                errorBox.innerText = "Invalid email or password.";
                 errorBox.style.display = 'block';
                 return;
             }
 
-            // CHECK IF ADMIN FLIPPED THE SWITCH
-            const { data: profile } = await supabase.from('profiles').select('is_verified').eq('id', data.user.id).single();
+            // 2. Check the 'profiles' table for the 24h Approval
+            const { data: profile, error: profileError } = await _supabase
+                .from('profiles')
+                .select('is_verified')
+                .eq('id', data.user.id)
+                .single();
 
-            if (profile && profile.is_verified) {
-                window.location.href = 'feed.html';
-            } else {
-                errorBox.innerText = "Account pending. Wait for the 24h approval.";
+            // If the profile doesn't exist or isn't verified yet
+            if (profileError || !profile.is_verified) {
+                errorBox.innerText = "Access Pending. Please wait 24h for admin approval.";
                 errorBox.style.display = 'block';
-                await supabase.auth.signOut();
+                
+                // Log them out so they don't stay in a "half-logged-in" state
+                await _supabase.auth.signOut();
+                return;
             }
+
+            // 3. Success!
+            window.location.href = 'feed.html';
+
+        } catch (err) {
+            console.error("Login System Error:", err);
+            errorBox.innerText = "System error. Please try again later.";
+            errorBox.style.display = 'block';
         }
-    </script>
-</body>
-</html>
+    };
+})();
+</script>
