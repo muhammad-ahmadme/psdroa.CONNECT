@@ -1,4 +1,29 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login / PSDROA.connect</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="center-body">
+    <div class="auth-box login-box">
+        <div class="logo-center">P.</div>
+        <h2>Sign in to PSDROA</h2>
+        
+        <div id="loginError" class="error-banner"></div>
+
+        <div class="input-group">
+            <input type="email" id="loginEmail" placeholder="School Email">
+            <input type="password" id="loginPass" placeholder="Password">
+        </div>
+        
+        <button class="main-btn" onclick="handleSignIn()">Log In</button>
+        
+        <p class="footer-text">New here? <a href="index.html">Request Access</a></p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 (function() {
