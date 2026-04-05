@@ -11,7 +11,7 @@
 <body>
     <div class="app-container">
         <aside class="sidebar">
-            <div class="logo">PSDROA<span>.connect</span></div>
+            <div class="logo">P.<span>connect</span></div>
             <nav class="side-nav">
                 <div class="nav-item active" onclick="switchTab('home', this)">
                     <i data-lucide="home"></i> <span>Home</span>
@@ -31,36 +31,43 @@
                 <div class="feed-header"><h2>Home</h2></div>
                 <div class="composer card">
                     <textarea id="postInput" placeholder="What's happening?"></textarea>
-                    <div style="text-align: right; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                    <div class="composer-footer">
                         <button class="post-btn" onclick="createPost()">Post</button>
                     </div>
                 </div>
-                <div id="postsContainer"></div>
+                <div id="postsContainer">
+                    <div class="loading-state">Loading the circle...</div>
+                </div>
             </section>
 
             <section id="notifications-view" class="view-section" style="display:none">
                 <div class="feed-header"><h2>Notifications</h2></div>
                 <div class="card">
-                    <p style="color: var(--text-dim)">No new alerts from the APS circle yet.</p>
+                    <p style="color: var(--text-dim)">No new alerts from the circle yet.</p>
                 </div>
             </section>
 
             <section id="profile-view" class="view-section" style="display:none">
                 <div class="feed-header"><h2>Profile</h2></div>
-                <div class="card profile-card" style="text-align: center;">
-                    <div class="avatar-large" style="width:80px; height:80px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 15px;"></div>
+                <div class="card profile-card">
+                    <div class="avatar-large"></div>
                     <h2 id="profileUsername">@username</h2>
-                    <p id="profileEmail" style="color: var(--text-dim)"></p>
+                    <p id="profileEmail"></p>
+                    <div class="profile-stats">
+                        <span><strong>0</strong> Posts</span>
+                    </div>
                 </div>
             </section>
         </main>
 
         <aside class="widgets">
             <div class="card">
-                <h3>Guidelines</h3>
-                <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 10px;">
-                    Keep it APS friendly. Respect the circle.
-                </p>
+                <h3>Community Rules</h3>
+                <ul class="rules-mini">
+                    <li>Stay APS friendly.</li>
+                    <li>No spamming the feed.</li>
+                    <li>Respect all members.</li>
+                </ul>
             </div>
         </aside>
     </div>
@@ -73,68 +80,121 @@
         const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
         const _db = supabase.createClient(_URL, _KEY);
 
-        // --- AUTH CHECK ---
-        async function checkUser() {
+        let currentUser = null;
+
+        // --- AUTH & INITIALIZATION ---
+        async function initApp() {
             const { data: { user } } = await _db.auth.getUser();
-            if (!user) window.location.href = 'login.html';
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            currentUser = user;
+            loadPosts();
+            setupRealtime();
         }
 
         // --- TAB SWITCHING ---
         function switchTab(tabName, element) {
-            // Hide all sections
             document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
-            // Remove active class from nav
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            // Show selected
             document.getElementById(`${tabName}-view`).style.display = 'block';
             element.classList.add('active');
 
             if(tabName === 'profile') loadProfileData();
-            if(tabName === 'notifications') console.log("Checking notifications...");
+        }
+
+        // --- RELATIVE TIME FUNCTION ---
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + "y";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + "mo";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + "d";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + "h";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + "m";
+            return "now";
         }
 
         // --- LOAD PROFILE ---
         async function loadProfileData() {
-            const { data: { user } } = await _db.auth.getUser();
-            if (user) {
-                document.getElementById('profileUsername').innerText = `@${user.email.split('@')[0]}`;
-                document.getElementById('profileEmail').innerText = user.email;
+            const { data: profile } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (profile) {
+                document.getElementById('profileUsername').innerText = `@${profile.username}`;
+                document.getElementById('profileEmail').innerText = currentUser.email;
             }
         }
 
-        // --- POSTING ---
+        // --- CREATE POST ---
         async function createPost() {
-            const content = document.getElementById('postInput').value;
-            const { data: { user } } = await _db.auth.getUser();
+            const input = document.getElementById('postInput');
+            const btn = document.querySelector('.post-btn');
+            const content = input.value.trim();
 
-            if (!content || !user) return;
+            if (!content) return;
+
+            btn.disabled = true;
+            btn.innerText = "...";
+
+            // Fetch current profile for the correct username
+            const { data: profile } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
 
             const { error } = await _db.from('posts').insert([
-                { user_id: user.id, content: content, username: user.email.split('@')[0] }
+                { 
+                    user_id: currentUser.id, 
+                    content: content, 
+                    username: profile ? profile.username : currentUser.email.split('@')[0] 
+                }
             ]);
 
+            btn.disabled = false;
+            btn.innerText = "Post";
+
             if (!error) {
-                document.getElementById('postInput').value = '';
-                // No need to call loadPosts() manually if Realtime is on!
+                input.value = '';
             } else {
-                alert("Error posting: " + error.message);
+                alert("Error: " + error.message);
             }
         }
 
         // --- LOAD POSTS ---
         async function loadPosts() {
-            const { data: posts, error } = await _db.from('posts').select('*').order('created_at', { ascending: false });
+            const { data: posts, error } = await _db
+                .from('posts')
+                .select('*')
+                .order('created_at', { ascending: false });
+
             const container = document.getElementById('postsContainer');
-            
             if (error) return;
+
+            if (posts.length === 0) {
+                container.innerHTML = '<div class="card" style="color:var(--text-dim)">Be the first to post!</div>';
+                return;
+            }
 
             container.innerHTML = posts.map(p => `
                 <div class="post-card card">
-                    <div class="post-user">@${p.username}</div>
+                    <div class="post-header">
+                        <span class="post-user">@${p.username}</span>
+                        <span class="post-time">${timeAgo(p.created_at)}</span>
+                    </div>
                     <p class="post-text">${p.content}</p>
                 </div>
             `).join('');
+        }
+
+        // --- REALTIME ---
+        function setupRealtime() {
+            _db.channel('public:posts')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => {
+                    loadPosts();
+                })
+                .subscribe();
         }
 
         async function handleLogout() {
@@ -142,19 +202,7 @@
             window.location.href = 'login.html';
         }
 
-        // --- REALTIME SUBSCRIPTION ---
-        const postSubscription = _db
-            .channel('public:posts')
-            .on(
-                'postgres_changes', 
-                { event: 'INSERT', schema: 'public', table: 'posts' }, 
-                () => loadPosts()
-            )
-            .subscribe();
-
-        // Initial Calls
-        checkUser();
-        loadPosts();
+        initApp();
     </script>
 </body>
 </html>
