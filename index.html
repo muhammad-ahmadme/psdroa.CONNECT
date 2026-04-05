@@ -3,51 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | PSDROA.connect</title>
+    <title>Join the circle | PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+    <header style="position: absolute; top: 0; width: 100%; padding: 20px 40px; display: flex; justify-content: flex-end; align-items: center; z-index: 100;">
+        <span style="color: var(--text-dim); margin-right: 15px; font-size: 0.9rem;">Already have an account?</span>
+        <a href="login.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px;">Sign in</a>
+    </header>
+
     <div class="auth-wrapper">
         <div class="auth-box">
-            <div style="color:var(--twitter-blue); font-size:2rem; font-weight:900; margin-bottom:20px;">
-                PSDROA<span style="color:white">.connect</span>
-            </div>
+            <div class="logo" style="font-size: 3.5rem; margin-bottom: 5px; font-weight: 900;">P.</div>
             
             <h1>Join the circle.</h1>
-            <p style="color:var(--text-dim); margin-bottom:30px;">Verified Amity Sharjah students only.</p>
+            <p class="subtitle">Request access to the APS student community.</p>
+            
+            <div id="regError" class="error-banner" style="display:none; margin-top: 20px;"></div>
+            <div id="regSuccess" class="error-banner" style="display:none; background: var(--twitter-blue); margin-top: 20px;">
+                Request Sent! Please wait 24h for approval.
+            </div>
 
-            <div id="loginError" class="error-banner" style="display:none"></div>
-
-            <input type="email" id="email" placeholder="aps.name@amitysharjah.ae">
-            <input type="password" id="password" placeholder="Password">
-
-            <button class="main-btn" onclick="handleLogin()">Log In</button>
-
-            <p style="color:var(--text-dim); font-size:0.8rem; margin-top:25px;">
-                By joining, you agree to the student code of conduct.
+            <div class="input-group" style="margin-top: 25px;">
+                <input type="text" id="regUsername" placeholder="Username (e.g. @muhammad)">
+                <input type="email" id="regEmail" placeholder="aps.name@amitysharjah.ae">
+                <input type="password" id="regPass" placeholder="Create Password">
+            </div>
+            
+            <button class="main-btn" onclick="handleRegister()">Request Access</button>
+            
+            <p style="margin-top: 30px; color: var(--text-dim); font-size: 0.8rem; line-height: 1.4;">
+                By requesting access, you agree to the <br> 
+                <span style="color: var(--twitter-blue); cursor: pointer;">Student Code of Conduct.</span>
             </p>
         </div>
     </div>
 
     <script>
-        const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
-        const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
-        const _db = supabase.createClient(_URL, _KEY);
+        const PROJECT_URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
+        const ANON_KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
+        const _db = supabase.createClient(PROJECT_URL, ANON_KEY);
 
-        async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorBox = document.getElementById('loginError');
+        async function handleRegister() {
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPass').value;
+            const username = document.getElementById('regUsername').value.trim();
+            const errorBox = document.getElementById('regError');
+            const successBox = document.getElementById('regSuccess');
 
-            const { data, error } = await _db.auth.signInWithPassword({ email, password });
+            errorBox.style.display = 'none';
+            successBox.style.display = 'none';
+
+            if (!email || !password || !username) {
+                errorBox.innerText = "All fields are required.";
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const { data, error } = await _db.auth.signUp({
+                email, password, options: { data: { username } }
+            });
 
             if (error) {
-                errorBox.innerText = "Invalid credentials. Access denied.";
-                errorBox.style.display = "block";
+                errorBox.innerText = error.message;
+                errorBox.style.display = 'block';
             } else {
-                window.location.href = 'feed.html';
+                successBox.style.display = 'block';
+                // Clear fields
+                document.querySelectorAll('input').forEach(i => i.value = '');
             }
         }
     </script>
