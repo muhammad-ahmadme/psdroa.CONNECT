@@ -1,48 +1,32 @@
 :root {
     --bg-black: #000000;
+    --bg-card: #16181c; /* Slightly lighter for cards */
     --border-gray: #2f3336;
     --twitter-blue: #1d9bf0;
+    --twitter-hover: #1a8cd8;
     --text-main: #e7e9ea;
     --text-dim: #71767b;
     --error-red: #f4212e;
+}
+
+/* --- Global Reset --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
     background-color: var(--bg-black);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
 }
 
-/* Nav */
-.top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 40px;
-    border-bottom: 1px solid var(--border-gray);
-}
-
-.logo { font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; }
-.logo span { color: var(--twitter-blue); }
-
-.nav-link-btn {
-    color: var(--text-main);
-    text-decoration: none;
-    font-weight: 600;
-    border: 1px solid var(--text-dim);
-    padding: 8px 20px;
-    border-radius: 99px;
-    transition: 0.2s;
-}
-
-.nav-link-btn:hover { background: #ffffff1a; }
-
-/* Layouts */
-.container {
+/* --- Centering Wrapper (Use for login.html) --- */
+.auth-wrapper {
     flex: 1;
     display: flex;
     justify-content: center;
@@ -50,23 +34,29 @@ body {
     padding: 20px;
 }
 
-.center-body { justify-content: center; align-items: center; display: flex; height: 100vh; }
-
-/* Auth Boxes */
+/* --- Auth Box (Login/Signup) --- */
 .auth-box {
     width: 100%;
     max-width: 400px;
-    padding: 40px;
+    padding: 20px;
     text-align: center;
 }
 
-.auth-box h1 { font-size: 3rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -1px; }
-.subtitle { color: var(--text-dim); margin-bottom: 30px; font-size: 1.1rem; }
+.auth-box h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+}
 
-/* Inputs */
-.input-group { margin-bottom: 20px; }
+.subtitle {
+    color: var(--text-dim);
+    margin-bottom: 30px;
+    font-size: 1rem;
+}
 
-input {
+/* --- Modern Inputs --- */
+input, textarea {
     width: 100%;
     padding: 16px;
     background: transparent;
@@ -75,15 +65,19 @@ input {
     border-radius: 4px;
     margin-bottom: 12px;
     font-size: 1rem;
-    box-sizing: border-box;
+    transition: 0.2s;
 }
 
-input:focus { border-color: var(--twitter-blue); outline: none; }
+input:focus, textarea:focus {
+    border-color: var(--twitter-blue);
+    outline: none;
+    background: rgba(29, 155, 240, 0.05);
+}
 
-/* Buttons */
+/* --- Professional Buttons --- */
 .main-btn {
     width: 100%;
-    padding: 15px;
+    padding: 14px;
     background: white;
     color: black;
     border: none;
@@ -98,30 +92,92 @@ input:focus { border-color: var(--twitter-blue); outline: none; }
 
 .secondary-btn {
     background: transparent;
-    color: var(--text-dim);
+    color: var(--text-main);
     border: 1px solid var(--border-gray);
     padding: 10px 20px;
     border-radius: 99px;
     cursor: pointer;
-    margin-top: 20px;
+    font-weight: 600;
 }
 
-/* Error/Status */
+.secondary-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* --- THE FEED LAYOUT (3-Columns) --- */
+.app-container {
+    display: flex;
+    max-width: 1250px;
+    margin: 0 auto;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Left Sidebar */
+.sidebar {
+    width: 275px;
+    padding: 10px 20px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    border-right: 1px solid var(--border-gray);
+}
+
+/* Center Feed */
+.feed-content {
+    flex: 1;
+    max-width: 600px;
+    border-right: 1px solid var(--border-gray);
+}
+
+.feed-header {
+    padding: 15px;
+    backdrop-filter: blur(12px);
+    background: rgba(0,0,0,0.65);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+/* Right Widgets */
+.widgets {
+    width: 350px;
+    padding: 15px 30px;
+}
+
+.card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+/* --- Tab Switching (Notifications/Profile) --- */
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    font-size: 1.2rem;
+    border-radius: 99px;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.1); }
+.nav-item.active { font-weight: 800; }
+
+/* --- Post Card Styles --- */
+.post-card {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-gray);
+}
+
+.post-card:hover { background: rgba(255,255,255,0.02); }
+
 .error-banner {
     background: var(--error-red);
     color: white;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    display: none;
-    font-size: 0.9rem;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 500;
 }
-
-.status-card { text-align: center; }
-.icon-clock { font-size: 4rem; margin-bottom: 20px; }
-.highlight { color: var(--twitter-blue); font-weight: 600; }
-
-.footer-text { font-size: 0.8rem; color: var(--text-dim); margin-top: 25px; }
-.footer-text a { color: var(--twitter-blue); text-decoration: none; }
-
-.logo-center { font-size: 3rem; font-weight: 900; color: var(--twitter-blue); margin-bottom: 20px; }
