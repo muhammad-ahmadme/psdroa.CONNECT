@@ -1,42 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed | PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
-            <h2>PSDROA<span>.connect</span></h2>
+            <div class="logo">PSDROA<span>.connect</span></div>
+            <nav class="side-nav">
+                <div class="nav-item active" onclick="switchTab('home', this)">
+                    <i data-lucide="home"></i> <span>Home</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('notifications', this)">
+                    <i data-lucide="bell"></i> <span>Notifications</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('profile', this)">
+                    <i data-lucide="user"></i> <span>Profile</span>
+                </div>
+            </nav>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </aside>
 
         <main class="feed-content">
-            <div class="composer card">
-                <textarea id="postInput" placeholder="What's on your mind?"></textarea>
-                <div style="text-align: right; border-top: 1px solid rgba(255,255,255,0.1); pt: 10px;">
-                    <button class="post-btn" onclick="createPost()">Post</button>
+            <section id="home-view" class="view-section">
+                <div class="feed-header"><h2>Home</h2></div>
+                <div class="composer card">
+                    <textarea id="postInput" placeholder="What's happening?"></textarea>
+                    <div style="text-align: right; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                        <button class="post-btn" onclick="createPost()">Post</button>
+                    </div>
                 </div>
-            </div>
-            <div id="postsContainer"></div>
+                <div id="postsContainer"></div>
+            </section>
+
+            <section id="notifications-view" class="view-section" style="display:none">
+                <div class="feed-header"><h2>Notifications</h2></div>
+                <div class="card">
+                    <p style="color: var(--text-dim)">No new alerts from the APS circle yet.</p>
+                </div>
+            </section>
+
+            <section id="profile-view" class="view-section" style="display:none">
+                <div class="feed-header"><h2>Profile</h2></div>
+                <div class="card profile-card" style="text-align: center;">
+                    <div class="avatar-large" style="width:80px; height:80px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 15px;"></div>
+                    <h2 id="profileUsername">@username</h2>
+                    <p id="profileEmail" style="color: var(--text-dim)"></p>
+                </div>
+            </section>
         </main>
 
         <aside class="widgets">
-            <div class="card"><h3>Guidelines</h3><p>Keep it APS friendly.</p></div>
+            <div class="card">
+                <h3>Guidelines</h3>
+                <p style="font-size: 0.9rem; color: var(--text-dim); margin-top: 10px;">
+                    Keep it APS friendly. Respect the circle.
+                </p>
+            </div>
         </aside>
     </div>
 
     <script>
+        // Initialize Icons
+        lucide.createIcons();
+
         const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
         const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
         const _db = supabase.createClient(_URL, _KEY);
 
-        // 1. Post Functionality
+        // --- AUTH CHECK ---
+        async function checkUser() {
+            const { data: { user } } = await _db.auth.getUser();
+            if (!user) window.location.href = 'login.html';
+        }
+
+        // --- TAB SWITCHING ---
+        function switchTab(tabName, element) {
+            // Hide all sections
+            document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
+            // Remove active class from nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById(`${tabName}-view`).style.display = 'block';
+            element.classList.add('active');
+
+            if(tabName === 'profile') loadProfileData();
+            if(tabName === 'notifications') console.log("Checking notifications...");
+        }
+
+        // --- LOAD PROFILE ---
+        async function loadProfileData() {
+            const { data: { user } } = await _db.auth.getUser();
+            if (user) {
+                document.getElementById('profileUsername').innerText = `@${user.email.split('@')[0]}`;
+                document.getElementById('profileEmail').innerText = user.email;
+            }
+        }
+
+        // --- POSTING ---
         async function createPost() {
             const content = document.getElementById('postInput').value;
             const { data: { user } } = await _db.auth.getUser();
 
-            if (!content) return;
+            if (!content || !user) return;
 
             const { error } = await _db.from('posts').insert([
                 { user_id: user.id, content: content, username: user.email.split('@')[0] }
@@ -44,52 +116,45 @@
 
             if (!error) {
                 document.getElementById('postInput').value = '';
-                loadPosts();
+                // No need to call loadPosts() manually if Realtime is on!
+            } else {
+                alert("Error posting: " + error.message);
             }
         }
 
-        // 2. Load Posts
+        // --- LOAD POSTS ---
         async function loadPosts() {
-            const { data: posts } = await _db.from('posts').select('*').order('created_at', { ascending: false });
+            const { data: posts, error } = await _db.from('posts').select('*').order('created_at', { ascending: false });
             const container = document.getElementById('postsContainer');
             
+            if (error) return;
+
             container.innerHTML = posts.map(p => `
-                <div class="card">
+                <div class="post-card card">
                     <div class="post-user">@${p.username}</div>
-                    <p>${p.content}</p>
+                    <p class="post-text">${p.content}</p>
                 </div>
             `).join('');
         }
 
+        async function handleLogout() {
+            await _db.auth.signOut();
+            window.location.href = 'login.html';
+        }
+
+        // --- REALTIME SUBSCRIPTION ---
+        const postSubscription = _db
+            .channel('public:posts')
+            .on(
+                'postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'posts' }, 
+                () => loadPosts()
+            )
+            .subscribe();
+
+        // Initial Calls
+        checkUser();
         loadPosts();
-        // 1. Tab Switching Logic
-function switchTab(tabName) {
-    // Hide all sections
-    document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
-    // Remove active class from nav
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    
-    // Show selected
-    document.getElementById(`${tabName}-view`).style.display = 'block';
-    event.currentTarget.classList.add('active');
-
-    if(tabName === 'profile') loadProfileData();
-}
-
-// 2. Load Profile Data from Supabase
-async function loadProfileData() {
-    const { data: { user } } = await _db.auth.getUser();
-    if (user) {
-        document.getElementById('profileUsername').innerText = `@${user.email.split('@')[0]}`;
-        document.getElementById('profileEmail').innerText = user.email;
-    }
-}
-
-// 3. Simple Notification Check (Placeholder)
-function checkNotifications() {
-    // You can later query a 'notifications' table here
-    console.log("Checking for new mentions...");
-}
     </script>
 </body>
 </html>
