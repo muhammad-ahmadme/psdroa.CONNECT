@@ -9,12 +9,7 @@
     --error-red: #f4212e;
 }
 
-/* --- Global Reset --- */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background-color: var(--bg-black);
@@ -23,30 +18,31 @@ body {
     min-height: 100vh;
 }
 
-/* --- Auth/Login Page Centering --- */
-/* Use this wrapper on login.html to keep the box dead center */
+/* --- THE CENTERING MAGIC --- */
 .auth-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
+    width: 100%;
 }
 
 .auth-box {
     width: 100%;
     max-width: 400px;
+    padding: 20px;
     text-align: center;
 }
 
 .auth-box h1 {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 900;
-    margin-bottom: 8px;
-    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 15px;
+    letter-spacing: -2px;
 }
 
-/* --- Layout System (Feed) --- */
+/* --- FEED LAYOUT --- */
 .app-container {
     display: flex;
     max-width: 1250px;
@@ -56,13 +52,11 @@ body {
 
 .sidebar {
     width: 275px;
-    padding: 10px 12px;
+    padding: 10px 15px;
     height: 100vh;
     position: sticky;
     top: 0;
     border-right: 1px solid var(--border-gray);
-    display: flex;
-    flex-direction: column;
 }
 
 .feed-content {
@@ -77,121 +71,56 @@ body {
     padding: 15px 30px;
 }
 
-/* --- Navigation --- */
-.logo {
-    font-size: 1.8rem;
-    font-weight: 900;
-    padding: 12px;
-    margin-bottom: 20px;
-}
-.logo span { color: var(--twitter-blue); }
-
+/* --- COMPONENTS --- */
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
     padding: 12px 16px;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     border-radius: 99px;
     cursor: pointer;
-    transition: 0.2s;
     width: fit-content;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
 }
 
-.nav-item:hover { background: rgba(255, 255, 255, 0.1); }
+.nav-item:hover { background: rgba(255,255,255,0.1); }
 .nav-item.active { font-weight: 800; }
-.nav-item i { width: 26px; }
 
-/* --- Buttons --- */
+input, textarea {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--border-gray);
+    color: white;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+input:focus { border-color: var(--twitter-blue); outline: none; }
+
 .main-btn {
+    width: 100%;
+    padding: 15px;
     background: white;
     color: black;
     border: none;
-    padding: 12px 24px;
     border-radius: 99px;
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    margin-top: 10px;
-}
-
-.post-btn {
-    background: var(--twitter-blue);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 99px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.post-btn:hover { background: var(--twitter-hover); }
-
-.logout-btn {
-    margin-top: auto;
-    background: transparent;
-    color: var(--text-main);
-    border: 1px solid var(--border-gray);
-    padding: 10px;
-    border-radius: 99px;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
-/* --- Cards & Posts --- */
-.card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
 }
 
 .post-card {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-gray);
-    transition: 0.2s;
-}
-
-.post-card:hover { background: rgba(255, 255, 255, 0.03); }
-
-.post-user {
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 4px;
-}
-
-.post-text {
-    color: var(--text-main);
-    word-wrap: break-word;
-}
-
-/* --- Components --- */
-.feed-header {
-    padding: 16px;
-    backdrop-filter: blur(12px);
-    background: rgba(0, 0, 0, 0.7);
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    padding: 15px;
     border-bottom: 1px solid var(--border-gray);
 }
-
-textarea#postInput {
-    background: transparent;
-    border: none;
-    font-size: 1.25rem;
-    resize: none;
-    min-height: 100px;
-}
-
-textarea#postInput:focus { background: transparent; border: none; }
 
 .error-banner {
     background: var(--error-red);
     color: white;
     padding: 12px;
     border-radius: 8px;
-    margin-bottom: 15px;
-    font-weight: 500;
+    margin-bottom: 20px;
 }
