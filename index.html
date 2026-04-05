@@ -10,27 +10,26 @@
 <body>
 
     <header style="position: absolute; top: 0; width: 100%; padding: 20px 40px; display: flex; justify-content: flex-end; align-items: center; z-index: 100; gap: 15px;">
-    <a href="rules.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px; color: var(--text-dim); border-color: transparent;">Rules</a>
-    
-    <div style="width: 1px; height: 20px; background: var(--border-gray);"></div>
-    
-    <a href="login.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px;">Sign in</a>
-</header>
+        <a href="rules.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px; color: var(--text-dim); border-color: transparent;">Rules</a>
+        <div style="width: 1px; height: 20px; background: var(--border-gray);"></div>
+        <a href="login.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px;">Sign in</a>
+    </header>
+
     <div class="auth-wrapper">
         <div class="auth-box">
             <div class="logo" style="font-size: 3.5rem; margin-bottom: 5px; font-weight: 900;">P.</div>
             
             <h1>Join the circle.</h1>
-            <p class="subtitle">Request access to the APS student community.</p>
+            <p class="subtitle">Request access to the community.</p>
             
             <div id="regError" class="error-banner" style="display:none; margin-top: 20px;"></div>
             <div id="regSuccess" class="error-banner" style="display:none; background: var(--twitter-blue); margin-top: 20px;">
-                Request Sent! Please wait 24h for approval.
+                Request Sent! Please wait 24h for admin approval.
             </div>
 
             <div class="input-group" style="margin-top: 25px;">
-                <input type="text" id="regUsername" placeholder="Username (e.g. @muhammad)">
-                <input type="email" id="regEmail" placeholder="aps.name@amitysharjah.ae">
+                <input type="text" id="regUsername" placeholder="Username">
+                <input type="email" id="regEmail" placeholder="Email Address">
                 <input type="password" id="regPass" placeholder="Create Password">
             </div>
             
@@ -38,7 +37,7 @@
             
             <p style="margin-top: 30px; color: var(--text-dim); font-size: 0.8rem; line-height: 1.4;">
                 By requesting access, you agree to the <br> 
-                <span style="color: var(--twitter-blue); cursor: pointer;">Student Code of Conduct.</span>
+                <a href="rules.html" style="color: var(--twitter-blue); text-decoration: none;">Community Rules.</a>
             </p>
         </div>
     </div>
@@ -64,8 +63,11 @@
                 return;
             }
 
+            // Logic: Create the user in Auth instantly
             const { data, error } = await _db.auth.signUp({
-                email, password, options: { data: { username } }
+                email, 
+                password, 
+                options: { data: { username } }
             });
 
             if (error) {
@@ -73,8 +75,14 @@
                 errorBox.style.display = 'block';
             } else {
                 successBox.style.display = 'block';
-                // Clear fields
-                document.querySelectorAll('input').forEach(i => i.value = '');
+                
+                // Clear the form
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPass').value = '';
+                document.getElementById('regUsername').value = '';
+                
+                // Auto-redirect to login so they can try after you approve them
+                setTimeout(() => { window.location.href = 'login.html'; }, 3000);
             }
         }
     </script>
