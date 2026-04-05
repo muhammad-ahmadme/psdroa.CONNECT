@@ -1,6 +1,6 @@
 :root {
     --bg-black: #000000;
-    --bg-card: #16181c; /* Slightly lighter for cards */
+    --bg-card: #16181c; 
     --border-gray: #2f3336;
     --twitter-blue: #1d9bf0;
     --twitter-hover: #1a8cd8;
@@ -21,157 +21,171 @@ body {
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
-/* --- Centering Wrapper (Use for login.html) --- */
+/* --- Auth/Login Page Centering --- */
+/* Use this wrapper on login.html to keep the box dead center */
 .auth-wrapper {
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
     padding: 20px;
 }
 
-/* --- Auth Box (Login/Signup) --- */
 .auth-box {
     width: 100%;
     max-width: 400px;
-    padding: 20px;
     text-align: center;
 }
 
 .auth-box h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 900;
     margin-bottom: 8px;
     letter-spacing: -1px;
 }
 
-.subtitle {
-    color: var(--text-dim);
-    margin-bottom: 30px;
-    font-size: 1rem;
-}
-
-/* --- Modern Inputs --- */
-input, textarea {
-    width: 100%;
-    padding: 16px;
-    background: transparent;
-    border: 1px solid var(--border-gray);
-    color: white;
-    border-radius: 4px;
-    margin-bottom: 12px;
-    font-size: 1rem;
-    transition: 0.2s;
-}
-
-input:focus, textarea:focus {
-    border-color: var(--twitter-blue);
-    outline: none;
-    background: rgba(29, 155, 240, 0.05);
-}
-
-/* --- Professional Buttons --- */
-.main-btn {
-    width: 100%;
-    padding: 14px;
-    background: white;
-    color: black;
-    border: none;
-    border-radius: 99px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.main-btn:hover { background: #d7dbdc; }
-
-.secondary-btn {
-    background: transparent;
-    color: var(--text-main);
-    border: 1px solid var(--border-gray);
-    padding: 10px 20px;
-    border-radius: 99px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.secondary-btn:hover { background: rgba(255, 255, 255, 0.1); }
-
-/* --- THE FEED LAYOUT (3-Columns) --- */
+/* --- Layout System (Feed) --- */
 .app-container {
     display: flex;
     max-width: 1250px;
     margin: 0 auto;
     width: 100%;
-    justify-content: center;
 }
 
-/* Left Sidebar */
 .sidebar {
     width: 275px;
-    padding: 10px 20px;
+    padding: 10px 12px;
     height: 100vh;
     position: sticky;
     top: 0;
     border-right: 1px solid var(--border-gray);
+    display: flex;
+    flex-direction: column;
 }
 
-/* Center Feed */
 .feed-content {
     flex: 1;
     max-width: 600px;
     border-right: 1px solid var(--border-gray);
+    min-height: 100vh;
 }
 
+.widgets {
+    width: 350px;
+    padding: 15px 30px;
+}
+
+/* --- Navigation --- */
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+.logo span { color: var(--twitter-blue); }
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 16px;
+    font-size: 1.25rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: 0.2s;
+    width: fit-content;
+    margin-bottom: 4px;
+}
+
+.nav-item:hover { background: rgba(255, 255, 255, 0.1); }
+.nav-item.active { font-weight: 800; }
+.nav-item i { width: 26px; }
+
+/* --- Buttons --- */
+.main-btn {
+    background: white;
+    color: black;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.post-btn {
+    background: var(--twitter-blue);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.post-btn:hover { background: var(--twitter-hover); }
+
+.logout-btn {
+    margin-top: auto;
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-gray);
+    padding: 10px;
+    border-radius: 99px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+/* --- Cards & Posts --- */
+.card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.post-card {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-gray);
+    transition: 0.2s;
+}
+
+.post-card:hover { background: rgba(255, 255, 255, 0.03); }
+
+.post-user {
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.post-text {
+    color: var(--text-main);
+    word-wrap: break-word;
+}
+
+/* --- Components --- */
 .feed-header {
-    padding: 15px;
+    padding: 16px;
     backdrop-filter: blur(12px);
-    background: rgba(0,0,0,0.65);
+    background: rgba(0, 0, 0, 0.7);
     position: sticky;
     top: 0;
     z-index: 10;
     border-bottom: 1px solid var(--border-gray);
 }
 
-/* Right Widgets */
-.widgets {
-    width: 350px;
-    padding: 15px 30px;
+textarea#postInput {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    resize: none;
+    min-height: 100px;
 }
 
-.card {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 15px;
-    margin-bottom: 15px;
-}
-
-/* --- Tab Switching (Notifications/Profile) --- */
-.nav-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    font-size: 1.2rem;
-    border-radius: 99px;
-    cursor: pointer;
-    margin-bottom: 5px;
-}
-
-.nav-item:hover { background: rgba(255,255,255,0.1); }
-.nav-item.active { font-weight: 800; }
-
-/* --- Post Card Styles --- */
-.post-card {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-gray);
-}
-
-.post-card:hover { background: rgba(255,255,255,0.02); }
+textarea#postInput:focus { background: transparent; border: none; }
 
 .error-banner {
     background: var(--error-red);
