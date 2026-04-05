@@ -1,259 +1,85 @@
-/* =========================================
-   1. GLOBAL THEME & RESET
-   ========================================= */
-:root {
-    --bg-dark: #0f172a;        /* Deep Navy */
-    --bg-card: rgba(30, 41, 59, 0.7); /* Translucent Slate */
-    --accent: #38bdf8;         /* Sky Blue */
-    --accent-glow: rgba(56, 189, 248, 0.3);
-    --text-main: #f8fafc;
-    --text-dim: #94a3b8;
-    --error: #ef4444;
-    --success: #22c55e;
-    --border: rgba(255, 255, 255, 0.1);
-    --glass: blur(12px);
-    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    transition: var(--transition);
-}
+/* --- RESET & BASIC THEME --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-main);
-    font-family: 'Inter', -apple-system, system-ui, sans-serif;
-    line-height: 1.5;
-    overflow-x: hidden;
+    background-color: #0f172a;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
 }
 
-/* =========================================
-   2. LOGIN PAGE (DEAD CENTERING)
-   ========================================= */
-.login-page-wrapper {
+/* --- THE LOGIN CENTERING (FIX) --- */
+/* Add class="login-screen" to your <body> on login.html only */
+.login-screen {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    width: 100%;
-    background: radial-gradient(circle at top right, #1e293b, #0f172a);
-    padding: 20px;
 }
 
 .auth-box {
-    background: var(--bg-card);
-    backdrop-filter: var(--glass);
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(10px);
     padding: 3rem;
-    border-radius: 28px;
-    border: 1px solid var(--border);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
     width: 100%;
-    max-width: 420px;
+    max-width: 400px;
     text-align: center;
 }
 
-.auth-box h1 {
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    letter-spacing: -1px;
-}
-
-.auth-box p {
-    color: var(--text-dim);
-    margin-bottom: 2rem;
-}
-
-.input-group {
-    margin-bottom: 1.5rem;
-    text-align: left;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 14px 16px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: white;
-    font-size: 1rem;
-    margin-top: 8px;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-glow);
-}
-
-/* =========================================
-   3. FEED LAYOUT (3-COLUMNS)
-   ========================================= */
+/* --- THE FEED LAYOUT (3-COLUMNS) --- */
 .app-container {
-    display: grid;
-    grid-template-columns: 260px 1fr 320px;
-    max-width: 1300px;
+    display: flex; /* Flex is safer than Grid for beginners */
+    max-width: 1200px;
     margin: 0 auto;
-    min-height: 100vh;
-}
-
-/* LEFT SIDEBAR */
-.sidebar {
-    padding: 24px;
-    border-right: 1px solid var(--border);
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.logo {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-bottom: 2.5rem;
-}
-
-.logo span { color: var(--accent); }
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    color: var(--text-dim);
-    text-decoration: none;
-    font-weight: 600;
-    border-radius: 12px;
-    margin-bottom: 4px;
-    cursor: pointer;
-}
-
-.nav-item:hover, .nav-item.active {
-    background: rgba(56, 189, 248, 0.1);
-    color: var(--accent);
-}
-
-/* MAIN CONTENT */
-.feed-content {
-    padding: 0 24px;
-    border-right: 1px solid var(--border);
-}
-
-.feed-header {
-    position: sticky;
-    top: 0;
-    background: rgba(15, 23, 42, 0.8);
-    backdrop-filter: var(--glass);
-    padding: 20px 0;
-    z-index: 50;
-    margin-bottom: 20px;
-}
-
-/* =========================================
-   4. COMPONENTS (CARDS, BUTTONS, POSTS)
-   ========================================= */
-.card {
-    background: var(--bg-card);
-    backdrop-filter: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-}
-
-.card:hover {
-    border-color: rgba(56, 189, 248, 0.3);
-}
-
-/* Post Composer */
-#postInput {
     width: 100%;
-    background: transparent;
-    border: none;
+}
+
+.sidebar { width: 250px; padding: 20px; border-right: 1px solid #334155; height: 100vh; position: sticky; top: 0; }
+.feed-content { flex: 1; padding: 20px; min-width: 0; }
+.widgets { width: 300px; padding: 20px; border-left: 1px solid #334155; }
+
+/* --- BUTTONS & INPUTS --- */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #1e293b;
     color: white;
-    font-size: 1.2rem;
-    resize: none;
-    outline: none;
-    min-height: 100px;
 }
 
 .main-btn, .post-btn {
-    background: var(--accent);
-    color: var(--bg-dark);
+    background: #38bdf8;
+    color: #0f172a;
     border: none;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 1rem;
+    transition: 0.2s;
 }
 
-.post-btn { border-radius: 30px; padding: 10px 28px; }
+.main-btn:hover { background: #0ea5e9; }
 
-.main-btn:hover, .post-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -5px var(--accent-glow);
-}
-
-/* =========================================
-   5. PROFILE & NOTIFICATIONS VIEW
-   ========================================= */
-.view-section {
-    animation: fadeIn 0.3s ease-out;
-}
-
-.profile-header {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.avatar-large {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(45deg, var(--accent), #818cf8);
-    border-radius: 50%;
-    margin: 0 auto 20px;
-}
-
-.badge {
-    display: inline-block;
-    background: rgba(56, 189, 248, 0.15);
-    color: var(--accent);
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    margin-top: 10px;
-}
-
-.error-banner {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error);
+/* --- TABS (HOME/PROFILE/NOTIF) --- */
+.nav-item {
+    display: block;
     padding: 12px;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.nav-item.active { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
+
+.card {
+    background: #1e293b;
     border-radius: 12px;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-/* =========================================
-   6. RESPONSIVE DESIGN
-   ========================================= */
-@media (max-width: 1100px) {
-    .app-container { grid-template-columns: 80px 1fr 0px; }
-    .nav-item span, .logo span, .widgets { display: none; }
-}
-
-@media (max-width: 650px) {
-    .app-container { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    padding: 20px;
+    margin-bottom: 15px;
 }
