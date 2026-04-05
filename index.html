@@ -3,68 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSDROA.connect | Amity Sharjah</title>
+    <title>Login | PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="logo">PSDROA<span>.connect</span></div>
-        <a href="login.html" class="nav-link-btn">Sign In</a>
-    </nav>
 
-    <main class="container">
-        <div id="requestForm" class="auth-box">
-            <h1>Join the circle.</h1>
-            <p class="subtitle">Verified Amity Sharjah students only.</p>
-            
-            <div id="errorBox" class="error-banner">Invalid credentials. Access denied.</div>
-
-            <div class="input-group">
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="text" id="email" placeholder="aps.name@amitysharjah.ae" required>
-                <input type="password" id="password" placeholder="Create Password" required>
+    <div class="auth-wrapper">
+        <div class="auth-box">
+            <div style="color:var(--twitter-blue); font-size:2rem; font-weight:900; margin-bottom:20px;">
+                PSDROA<span style="color:white">.connect</span>
             </div>
             
-            <button class="main-btn" onclick="submitToWaitingLine()">Let's Get Started</button>
-            <p class="footer-text">By joining, you agree to the student code of conduct.</p>
-        </div>
+            <h1>Join the circle.</h1>
+            <p style="color:var(--text-dim); margin-bottom:30px;">Verified Amity Sharjah students only.</p>
 
-        <div id="waitingLine" class="status-card" style="display: none;">
-            <div class="icon-clock">⏳</div>
-            <h2>You're in the waiting line.</h2>
-            <p>Your request has been logged for <strong>inquiries@psdroa.co.uk</strong>.</p>
-            <p class="highlight">Please wait 24 hours for manual approval.</p>
-            <button class="secondary-btn" onclick="location.reload()">Back to Home</button>
+            <div id="loginError" class="error-banner" style="display:none"></div>
+
+            <input type="email" id="email" placeholder="aps.name@amitysharjah.ae">
+            <input type="password" id="password" placeholder="Password">
+
+            <button class="main-btn" onclick="handleLogin()">Log In</button>
+
+            <p style="color:var(--text-dim); font-size:0.8rem; margin-top:25px;">
+                By joining, you agree to the student code of conduct.
+            </p>
         </div>
-    </main>
+    </div>
 
     <script>
-        async function submitToWaitingLine() {
-            const email = document.getElementById('email').value.trim();
-            const username = document.getElementById('username').value.trim();
+        const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
+        const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
+        const _db = supabase.createClient(_URL, _KEY);
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const errorBox = document.getElementById('errorBox');
+            const errorBox = document.getElementById('loginError');
 
-            if(!email || !username || !password) {
-                errorBox.innerText = "Please fill in all fields.";
-                errorBox.style.display = 'block';
-                return;
-            }
+            const { data, error } = await _db.auth.signInWithPassword({ email, password });
 
-            // The 'APS' check happens HERE in the backend, not the browser.
-            const response = await fetch('/api/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, username, password })
-            });
-
-            if (response.ok) {
-                document.getElementById('requestForm').style.display = 'none';
-                document.getElementById('waitingLine').style.display = 'block';
+            if (error) {
+                errorBox.innerText = "Invalid credentials. Access denied.";
+                errorBox.style.display = "block";
             } else {
-                errorBox.style.display = 'block';
-                // If it fails, it's because the API rejected the email format.
-                errorBox.innerText = "Access denied. Check your school email format.";
+                window.location.href = 'feed.html';
             }
         }
     </script>
