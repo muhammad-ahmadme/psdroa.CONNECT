@@ -3,139 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home / PSDROA.connect</title>
+    <title>Feed | PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="feed-body">
-
-    <div class="feed-container">
-        <aside class="sidebar-left">
-            <div class="nav-brand">P.</div>
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active"><span>🏠</span> Home</a>
-                <a href="#" class="nav-item"><span>🔔</span> Notifications</a>
-                <a href="#" class="nav-item"><span>👤</span> Profile</a>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">PSDROA<span>.connect</span></div>
+            <nav class="side-nav">
+                <a href="#" class="nav-item active"><i data-lucide="home"></i> Home</a>
+                <a href="#" class="nav-item"><i data-lucide="bell"></i> Notifications</a>
+                <a href="#" class="nav-item"><i data-lucide="user"></i> Profile</a>
             </nav>
-            <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </aside>
 
-        <main class="timeline">
-            <header class="timeline-header">
-                <h2>Home</h2>
+        <main class="feed-content">
+            <header class="feed-header">
+                <h1>Home</h1>
             </header>
 
-            <div class="post-creator">
-                <div class="avatar-placeholder"></div>
-                <div class="input-wrapper">
-                    <textarea id="postInput" placeholder="What's happening in Amity?"></textarea>
-                    <div class="post-footer">
-                        <div class="post-icons">
-                            <span>🖼️</span> <span>📊</span> <span>📍</span>
-                        </div>
-                        <button class="post-submit" onclick="createPost()">Post</button>
-                    </div>
+            <div class="composer card">
+                <textarea id="postInput" placeholder="What's happening, APS?"></textarea>
+                <div class="composer-actions">
+                    <button class="post-btn" onclick="createPost()">Post</button>
                 </div>
             </div>
 
-            <div id="postsFeed">
-                <div class="loading-spinner">Fetching the circle...</div>
+            <div id="postsContainer">
+                <div class="loader">Loading the circle...</div>
             </div>
         </main>
 
-        <aside class="sidebar-right">
-            <div class="search-container">
-                <input type="text" placeholder="Search Connect">
-            </div>
-            <div class="trending-box">
-                <h3>What's Trending</h3>
-                <div class="trend-card">
-                    <small>Trending in Sharjah</small>
-                    <p>#AmitySharjah</p>
-                    <small>1,240 Posts</small>
-                </div>
-                <div class="trend-card">
-                    <small>Academic Hub</small>
-                    <p>#ExamPreparation</p>
-                    <small>856 Posts</small>
-                </div>
+        <aside class="widgets">
+            <div class="card widget-card">
+                <h3>School Updates</h3>
+                <p>Verify your 24h status if you see this!</p>
             </div>
         </aside>
     </div>
 
     <script>
-        // 1. Initialize Supabase
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // SUPABASE CONFIG
         const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
         const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
-        const supabase = supabase.createClient(_URL, _KEY);
+        const supabaseClient = supabase.createClient(_URL, _KEY);
 
-        // 2. Auth Check: Kick out anyone not logged in
-        async function checkSession() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                window.location.href = 'index.html';
-            } else {
-                fetchPosts();
-            }
+        // 1. Check Auth on Load
+        async function checkUser() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) window.location.href = 'login.html';
+            loadPosts();
         }
 
-        // 3. Fetch Posts from SQL Table
-        async function fetchPosts() {
-            const { data, error } = await supabase
-                .from('posts')
+        // 2. Load Posts from Database
+        async function loadPosts() {
+            const container = document.getElementById('postsContainer');
+            const { data: posts, error } = await supabaseClient
+                .from('posts') // Ensure you have a 'posts' table!
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            const feedContainer = document.getElementById('postsFeed');
-            
             if (error) {
-                feedContainer.innerHTML = `<p class="error-text">Error loading feed. Verify your account.</p>`;
+                container.innerHTML = `<p>Error loading posts: ${error.message}</p>`;
                 return;
             }
 
-            feedContainer.innerHTML = data.map(post => `
-                <div class="post-card">
-                    <div class="avatar-placeholder"></div>
-                    <div class="post-content">
-                        <div class="post-user-info">
-                            <strong>Student</strong> <small>· ${new Date(post.created_at).toLocaleTimeString()}</small>
-                        </div>
-                        <p class="post-text">${post.content}</p>
-                        <div class="post-interactions">
-                            <span>💬 0</span> <span>🔁 0</span> <span>❤️ 0</span>
-                        </div>
+            container.innerHTML = posts.map(post => `
+                <div class="post-card card">
+                    <div class="post-header">
+                        <span class="post-user">@${post.username}</span>
+                        <span class="post-date">${new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
+                    <p class="post-text">${post.content}</p>
                 </div>
             `).join('');
         }
 
-        // 4. Create a New Post
-        async function createPost() {
-            const content = document.getElementById('postInput').value;
-            if (!content.trim()) return;
-
-            const { data: { user } } = await supabase.auth.getUser();
-
-            const { error } = await supabase
-                .from('posts')
-                .insert([{ content: content, user_id: user.id }]);
-
-            if (error) {
-                alert("Only verified students can post. Check back in 24h.");
-            } else {
-                document.getElementById('postInput').value = '';
-                fetchPosts(); // Refresh feed
-            }
-        }
-
-        // 5. Logout
         async function handleLogout() {
-            await supabase.auth.signOut();
-            window.location.href = 'index.html';
+            await supabaseClient.auth.signOut();
+            window.location.href = 'login.html';
         }
 
-        // Run on load
-        checkSession();
+        checkUser();
     </script>
 </body>
 </html>
