@@ -62,6 +62,34 @@
         }
 
         loadPosts();
+        // 1. Tab Switching Logic
+function switchTab(tabName) {
+    // Hide all sections
+    document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
+    // Remove active class from nav
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    // Show selected
+    document.getElementById(`${tabName}-view`).style.display = 'block';
+    event.currentTarget.classList.add('active');
+
+    if(tabName === 'profile') loadProfileData();
+}
+
+// 2. Load Profile Data from Supabase
+async function loadProfileData() {
+    const { data: { user } } = await _db.auth.getUser();
+    if (user) {
+        document.getElementById('profileUsername').innerText = `@${user.email.split('@')[0]}`;
+        document.getElementById('profileEmail').innerText = user.email;
+    }
+}
+
+// 3. Simple Notification Check (Placeholder)
+function checkNotifications() {
+    // You can later query a 'notifications' table here
+    console.log("Checking for new mentions...");
+}
     </script>
 </body>
 </html>
