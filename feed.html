@@ -1,96 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feed | PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="feed-body">
+<body>
     <div class="app-container">
         <aside class="sidebar">
-            <div class="logo">PSDROA<span>.connect</span></div>
-            <nav class="side-nav">
-                <a href="#" class="nav-item active"><i data-lucide="home"></i> Home</a>
-                <a href="#" class="nav-item"><i data-lucide="bell"></i> Notifications</a>
-                <a href="#" class="nav-item"><i data-lucide="user"></i> Profile</a>
-            </nav>
+            <h2>PSDROA<span>.connect</span></h2>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </aside>
 
         <main class="feed-content">
-            <header class="feed-header">
-                <h1>Home</h1>
-            </header>
-
             <div class="composer card">
-                <textarea id="postInput" placeholder="What's happening, APS?"></textarea>
-                <div class="composer-actions">
+                <textarea id="postInput" placeholder="What's on your mind?"></textarea>
+                <div style="text-align: right; border-top: 1px solid rgba(255,255,255,0.1); pt: 10px;">
                     <button class="post-btn" onclick="createPost()">Post</button>
                 </div>
             </div>
-
-            <div id="postsContainer">
-                <div class="loader">Loading the circle...</div>
-            </div>
+            <div id="postsContainer"></div>
         </main>
 
         <aside class="widgets">
-            <div class="card widget-card">
-                <h3>School Updates</h3>
-                <p>Verify your 24h status if you see this!</p>
-            </div>
+            <div class="card"><h3>Guidelines</h3><p>Keep it APS friendly.</p></div>
         </aside>
     </div>
 
     <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
-
-        // SUPABASE CONFIG
         const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
         const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
-        const supabaseClient = supabase.createClient(_URL, _KEY);
+        const _db = supabase.createClient(_URL, _KEY);
 
-        // 1. Check Auth on Load
-        async function checkUser() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) window.location.href = 'login.html';
-            loadPosts();
+        // 1. Post Functionality
+        async function createPost() {
+            const content = document.getElementById('postInput').value;
+            const { data: { user } } = await _db.auth.getUser();
+
+            if (!content) return;
+
+            const { error } = await _db.from('posts').insert([
+                { user_id: user.id, content: content, username: user.email.split('@')[0] }
+            ]);
+
+            if (!error) {
+                document.getElementById('postInput').value = '';
+                loadPosts();
+            }
         }
 
-        // 2. Load Posts from Database
+        // 2. Load Posts
         async function loadPosts() {
+            const { data: posts } = await _db.from('posts').select('*').order('created_at', { ascending: false });
             const container = document.getElementById('postsContainer');
-            const { data: posts, error } = await supabaseClient
-                .from('posts') // Ensure you have a 'posts' table!
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                container.innerHTML = `<p>Error loading posts: ${error.message}</p>`;
-                return;
-            }
-
-            container.innerHTML = posts.map(post => `
-                <div class="post-card card">
-                    <div class="post-header">
-                        <span class="post-user">@${post.username}</span>
-                        <span class="post-date">${new Date(post.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <p class="post-text">${post.content}</p>
+            
+            container.innerHTML = posts.map(p => `
+                <div class="card">
+                    <div class="post-user">@${p.username}</div>
+                    <p>${p.content}</p>
                 </div>
             `).join('');
         }
 
-        async function handleLogout() {
-            await supabaseClient.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        checkUser();
+        loadPosts();
     </script>
 </body>
 </html>
