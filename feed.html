@@ -7,21 +7,27 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* DM Specific Styles */
+        .dm-layout { display: flex; height: 500px; border: 1px solid var(--border-gray); border-radius: 12px; overflow: hidden; }
+        .dm-sidebar { width: 200px; border-right: 1px solid var(--border-gray); background: rgba(255,255,255,0.02); overflow-y: auto; }
+        .dm-main { flex: 1; display: flex; flex-direction: column; background: #000; }
+        .chat-bubble { max-width: 70%; padding: 10px 15px; border-radius: 18px; font-size: 0.9rem; line-height: 1.4; margin-bottom: 4px; }
+        .sent { align-self: flex-end; background: var(--twitter-blue); color: white; border-bottom-right-radius: 4px; }
+        .received { align-self: flex-start; background: #2f3336; color: white; border-bottom-left-radius: 4px; }
+        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-gray); cursor: pointer; font-size: 0.9rem; }
+        .convo-item:hover { background: rgba(255,255,255,0.05); }
+        .convo-item.active { border-left: 3px solid var(--twitter-blue); background: rgba(29, 155, 240, 0.1); }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
             <div class="logo">P.<span>connect</span></div>
             <nav class="side-nav">
-                <div class="nav-item active" onclick="switchTab('home', this)">
-                    <i data-lucide="home"></i> <span>Home</span>
-                </div>
-                <div class="nav-item" onclick="switchTab('notifications', this)">
-                    <i data-lucide="bell"></i> <span>Notifications</span>
-                </div>
-                <div class="nav-item" onclick="switchTab('profile', this)">
-                    <i data-lucide="user"></i> <span>Profile</span>
-                </div>
+                <div class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
+                <div class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
+                <div class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
             </nav>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </aside>
@@ -31,19 +37,27 @@
                 <div class="feed-header"><h2>Home</h2></div>
                 <div class="composer card">
                     <textarea id="postInput" placeholder="What's happening?"></textarea>
-                    <div class="composer-footer">
-                        <button class="post-btn" onclick="createPost()">Post</button>
-                    </div>
+                    <div style="text-align: right; padding-top: 10px;"><button class="post-btn" onclick="createPost()">Post</button></div>
                 </div>
-                <div id="postsContainer">
-                    <div class="loading-state">Loading the circle...</div>
-                </div>
+                <div id="postsContainer"></div>
             </section>
 
-            <section id="notifications-view" class="view-section" style="display:none">
-                <div class="feed-header"><h2>Notifications</h2></div>
-                <div class="card">
-                    <p style="color: var(--text-dim)">No new alerts from the circle yet.</p>
+            <section id="messages-view" class="view-section" style="display:none">
+                <div class="feed-header"><h2>Messages</h2></div>
+                <div class="dm-layout">
+                    <div class="dm-sidebar" id="convoList">
+                        <div style="padding: 10px;"><input type="text" id="newChatUser" placeholder="Search @user..." style="width:100%; padding:5px; background:transparent; border:1px solid #333; color:white;"></div>
+                        <div id="activeConvos"></div>
+                    </div>
+                    <div class="dm-main">
+                        <div id="chatWindow" style="flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+                            <p style="color:var(--text-dim); text-align:center; margin-top:100px;">Select a conversation</p>
+                        </div>
+                        <div style="padding:15px; border-top:1px solid #333; display:flex; gap:10px;">
+                            <input type="text" id="dmInput" placeholder="Start typing..." style="flex:1; background:transparent; border:none; color:white; outline:none;">
+                            <button class="post-btn" onclick="sendDM()" style="padding: 5px 15px;">Send</button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -52,157 +66,103 @@
                 <div class="card profile-card">
                     <div class="avatar-large"></div>
                     <h2 id="profileUsername">@username</h2>
-                    <p id="profileEmail"></p>
-                    <div class="profile-stats">
-                        <span><strong>0</strong> Posts</span>
-                    </div>
+                    <p id="profileEmail" style="color:var(--text-dim)"></p>
                 </div>
             </section>
         </main>
-
-        <aside class="widgets">
-            <div class="card">
-                <h3>Community Rules</h3>
-                <ul class="rules-mini">
-                    <li>Stay APS friendly.</li>
-                    <li>No spamming the feed.</li>
-                    <li>Respect all members.</li>
-                </ul>
-            </div>
-        </aside>
     </div>
 
     <script>
-        // Initialize Icons
         lucide.createIcons();
-
         const _URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
         const _KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
         const _db = supabase.createClient(_URL, _KEY);
 
         let currentUser = null;
+        let activeChatId = null; // The ID of the person we are currently messaging
 
-        // --- AUTH & INITIALIZATION ---
-        async function initApp() {
+        async function init() {
             const { data: { user } } = await _db.auth.getUser();
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!user) return window.location.href = 'login.html';
             currentUser = user;
             loadPosts();
             setupRealtime();
         }
 
-        // --- TAB SWITCHING ---
-        function switchTab(tabName, element) {
+        function switchTab(tab, el) {
             document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            document.getElementById(`${tabName}-view`).style.display = 'block';
-            element.classList.add('active');
-
-            if(tabName === 'profile') loadProfileData();
+            document.getElementById(`${tab}-view`).style.display = 'block';
+            el.classList.add('active');
+            if(tab === 'profile') loadProfileData();
+            if(tab === 'messages') loadConversations();
         }
 
-        // --- RELATIVE TIME FUNCTION ---
-        function timeAgo(date) {
-            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + "y";
-            interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + "mo";
-            interval = seconds / 86400;
-            if (interval > 1) return Math.floor(interval) + "d";
-            interval = seconds / 3600;
-            if (interval > 1) return Math.floor(interval) + "h";
-            interval = seconds / 60;
-            if (interval > 1) return Math.floor(interval) + "m";
-            return "now";
-        }
-
-        // --- LOAD PROFILE ---
-        async function loadProfileData() {
-            const { data: profile } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
-            if (profile) {
-                document.getElementById('profileUsername').innerText = `@${profile.username}`;
-                document.getElementById('profileEmail').innerText = currentUser.email;
-            }
-        }
-
-        // --- CREATE POST ---
-        async function createPost() {
-            const input = document.getElementById('postInput');
-            const btn = document.querySelector('.post-btn');
-            const content = input.value.trim();
-
-            if (!content) return;
-
-            btn.disabled = true;
-            btn.innerText = "...";
-
-            // Fetch current profile for the correct username
-            const { data: profile } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-
-            const { error } = await _db.from('posts').insert([
-                { 
-                    user_id: currentUser.id, 
-                    content: content, 
-                    username: profile ? profile.username : currentUser.email.split('@')[0] 
-                }
-            ]);
-
-            btn.disabled = false;
-            btn.innerText = "Post";
-
-            if (!error) {
-                input.value = '';
-            } else {
-                alert("Error: " + error.message);
-            }
-        }
-
-        // --- LOAD POSTS ---
+        // --- POST LOGIC ---
         async function loadPosts() {
-            const { data: posts, error } = await _db
-                .from('posts')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            const container = document.getElementById('postsContainer');
-            if (error) return;
-
-            if (posts.length === 0) {
-                container.innerHTML = '<div class="card" style="color:var(--text-dim)">Be the first to post!</div>';
-                return;
-            }
-
-            container.innerHTML = posts.map(p => `
+            const { data: posts } = await _db.from('posts').select('*').order('created_at', { ascending: false });
+            document.getElementById('postsContainer').innerHTML = posts.map(p => `
                 <div class="post-card card">
-                    <div class="post-header">
-                        <span class="post-user">@${p.username}</span>
-                        <span class="post-time">${timeAgo(p.created_at)}</span>
-                    </div>
+                    <div class="post-user">@${p.username}</div>
                     <p class="post-text">${p.content}</p>
-                </div>
+                </div>`).join('');
+        }
+
+        async function createPost() {
+            const content = document.getElementById('postInput').value;
+            const { data: profile } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            await _db.from('posts').insert([{ user_id: currentUser.id, content, username: profile.username }]);
+            document.getElementById('postInput').value = '';
+            loadPosts();
+        }
+
+        // --- DM LOGIC ---
+        async function loadConversations() {
+            // This is a simple list of users you can message. 
+            // In a big app, you'd only show people you've messaged before.
+            const { data: profiles } = await _db.from('profiles').select('*').neq('id', currentUser.id);
+            document.getElementById('activeConvos').innerHTML = profiles.map(p => `
+                <div class="convo-item" onclick="openChat('${p.id}', '@${p.username}')">@${p.username}</div>
             `).join('');
         }
 
-        // --- REALTIME ---
+        async function openChat(userId, username) {
+            activeChatId = userId;
+            document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            if (!activeChatId) return;
+            const { data: msgs } = await _db.from('messages')
+                .select('*')
+                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
+                .order('created_at', { ascending: true });
+
+            const win = document.getElementById('chatWindow');
+            win.innerHTML = msgs.map(m => `
+                <div class="chat-bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>
+            `).join('');
+            win.scrollTop = win.scrollHeight;
+        }
+
+        async function sendDM() {
+            const content = document.getElementById('dmInput').value;
+            if (!content || !activeChatId) return;
+            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content }]);
+            document.getElementById('dmInput').value = '';
+            loadMessages();
+        }
+
         function setupRealtime() {
-            _db.channel('public:posts')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => {
-                    loadPosts();
-                })
+            _db.channel('db-changes')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => loadPosts())
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => loadMessages())
                 .subscribe();
         }
 
-        async function handleLogout() {
-            await _db.auth.signOut();
-            window.location.href = 'login.html';
-        }
-
-        initApp();
+        async function handleLogout() { await _db.auth.signOut(); window.location.href = 'login.html'; }
+        init();
     </script>
 </body>
 </html>
