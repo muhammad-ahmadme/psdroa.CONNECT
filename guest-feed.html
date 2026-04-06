@@ -27,35 +27,32 @@
         .nav-item:hover { background: var(--bg-hover); }
         .nav-item.active { font-weight: bold; color: var(--twitter-blue); }
 
-        /* Search Bar */
+        /* Search & Feed */
         .search-container { padding: 10px 15px; position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-gray); z-index: 10; }
-        .search-input { width: 100%; background: #202327; border: 1px solid transparent; color: white; padding: 10px 15px; border-radius: 20px; outline: none; transition: 0.2s; }
-        .search-input:focus { border-color: var(--twitter-blue); background: black; }
-
-        /* Post & Threading */
+        .search-input { width: 100%; background: #202327; border: 1px solid transparent; color: white; padding: 10px 15px; border-radius: 20px; outline: none; }
+        
         .post-card { padding: 15px; border-bottom: 1px solid var(--border-gray); display: flex; gap: 12px; }
+        .username-link { font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .username-link:hover { text-decoration: underline; color: var(--twitter-blue); }
+
         .reply-thread-container { margin-left: 52px; border-left: 2px solid var(--border-gray); display: none; }
         .reply-card { padding: 10px 15px; display: flex; gap: 10px; font-size: 0.9rem; border-bottom: 1px solid rgba(47,51,54,0.3); }
-        .toggle-replies-btn { background: none; border: none; color: var(--twitter-blue); cursor: pointer; font-size: 0.85rem; padding: 10px 52px; display: flex; align-items: center; gap: 5px; width: 100%; }
+        .toggle-replies-btn { background: none; border: none; color: var(--twitter-blue); cursor: pointer; font-size: 0.85rem; padding: 10px 52px; width: 100%; text-align: left; }
 
-        /* Messaging UI */
-        .dm-layout { display: flex; height: 75vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; background: #000; }
-        .dm-sidebar { width: 35%; border-right: 1px solid var(--border-gray); background: rgba(255,255,255,0.02); overflow-y: auto; }
-        .dm-main { flex: 1; display: flex; flex-direction: column; background: #000; }
-        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-gray); cursor: pointer; transition: 0.2s; }
-        .convo-item:hover { background: var(--bg-hover); }
+        /* Messaging */
+        .dm-layout { display: flex; height: 75vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; }
+        .dm-sidebar { width: 35%; border-right: 1px solid var(--border-gray); overflow-y: auto; }
+        .dm-main { flex: 1; display: flex; flex-direction: column; }
+        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-gray); cursor: pointer; }
         .convo-item.active { background: rgba(29, 155, 240, 0.1); border-left: 4px solid var(--twitter-blue); }
         #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; }
-        .sent { align-self: flex-end; background: var(--twitter-blue); color: white; border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: #2f3336; color: white; border-bottom-left-radius: 2px; }
+        .sent { align-self: flex-end; background: var(--twitter-blue); }
+        .received { align-self: flex-start; background: #2f3336; }
 
         .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--twitter-blue); color: white; }
 
-        @media (max-width: 768px) {
-            .sidebar { width: 70px; padding: 10px; }
-            .sidebar span { display: none; }
-        }
+        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar span { display: none; } }
     </style>
 </head>
 <body>
@@ -63,24 +60,19 @@
         <aside class="sidebar">
             <div style="font-weight: 900; font-size: 2rem; padding: 20px;">P.<span style="color:var(--twitter-blue)">guest</span></div>
             <nav>
-                <div class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Feed</span></div>
-                <div class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
-                <div class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
+                <div id="nav-home" class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Feed</span></div>
+                <div id="nav-messages" class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
+                <div id="nav-profile" class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
             </nav>
             <button class="main-btn" onclick="handleLogout()" style="margin-top: auto; margin-bottom: 20px; background: transparent; border: 1px solid var(--border-gray);">Logout</button>
         </aside>
 
         <main class="feed-content">
             <section id="home-view" class="view-section">
-                <div class="search-container">
-                    <input type="text" id="feedSearch" class="search-input" placeholder="Search posts or users..." oninput="loadPosts()">
-                </div>
-                
+                <div class="search-container"><input type="text" id="feedSearch" class="search-input" placeholder="Search..." oninput="loadPosts()"></div>
                 <div style="padding: 20px; border-bottom: 1px solid var(--border-gray);">
                     <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.2rem; resize:none; outline:none;" placeholder="What's happening?"></textarea>
-                    <div style="display: flex; justify-content: flex-end; padding-top: 15px;">
-                        <button class="main-btn" style="width:auto; padding: 8px 25px;" onclick="createPost()">Post</button>
-                    </div>
+                    <div style="display: flex; justify-content: flex-end; padding-top: 15px;"><button class="main-btn" style="width:auto; padding: 8px 25px;" onclick="createPost()">Post</button></div>
                 </div>
                 <div id="postsContainer"></div>
             </section>
@@ -90,11 +82,9 @@
                 <div class="dm-layout">
                     <div class="dm-sidebar" id="convoList"></div>
                     <div class="dm-main">
-                        <div id="chatWindow">
-                            <p style="color:var(--text-dim); text-align:center; margin-top:100px;">Select a conversation.</p>
-                        </div>
+                        <div id="chatWindow"><p style="color:var(--text-dim); text-align:center; margin-top:100px;">Select a conversation.</p></div>
                         <div id="msgInputArea" style="padding:15px; border-top:1px solid var(--border-gray); display:none; gap:12px;">
-                            <input type="text" id="dmInput" placeholder="Start a message" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px; outline:none;">
+                            <input type="text" id="dmInput" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px;">
                             <button class="main-btn" onclick="sendDM()" style="width: auto; padding: 0 20px;">Send</button>
                         </div>
                     </div>
@@ -112,9 +102,7 @@
         const _URL = 'https://aelkiokxzzfnfvermrjy.supabase.co';
         const _KEY = 'sb_publishable_r8ncudJ8R49sXNlsE3OKvA_D4Ak_CHC';
         const _db = supabase.createClient(_URL, _KEY);
-
-        let currentUser = null;
-        let activeChatId = null;
+        let currentUser = null, activeChatId = null;
 
         async function handleLogout() { await _db.auth.signOut(); window.location.href = 'login-guest.html'; }
 
@@ -125,30 +113,26 @@
             if(el) el.classList.add('active');
             if(tab === 'home') loadPosts();
             if(tab === 'messages') loadConvoList();
-            if(tab === 'profile') loadProfileData();
+            if(tab === 'profile') loadProfileData(); 
         }
 
-        // --- FEED LOGIC ---
+        // New function to handle viewing someone else's profile
+        function viewUserProfile(userId) {
+            switchTab('profile', document.getElementById('nav-profile'));
+            loadProfileData(userId);
+        }
+
         async function loadPosts() {
             const query = document.getElementById('feedSearch').value.toLowerCase();
             const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
-            
             if (!posts) return;
-
-            // Filter logic: Search content or username (Non-case sensitive)
-            const filteredPosts = posts.filter(p => 
-                p.content.toLowerCase().includes(query) || 
-                (p.username && p.username.toLowerCase().includes(query))
-            );
-
-            renderPosts(filteredPosts, posts); 
+            const filtered = posts.filter(p => p.content.toLowerCase().includes(query) || (p.username && p.username.toLowerCase().includes(query)));
+            renderPosts(filtered, posts);
         }
 
         function renderPosts(displayPosts, allPostsRaw) {
             const container = document.getElementById('postsContainer');
-            // We only show main posts (no parent_id) in the main feed
             const mainPosts = displayPosts.filter(p => !p.parent_id);
-            // Replies are fetched from the full raw list to ensure threads stay intact
             const replies = allPostsRaw.filter(p => p.parent_id);
 
             container.innerHTML = mainPosts.map(p => {
@@ -156,114 +140,67 @@
                 return `
                 <div class="post-group">
                     <div class="post-card">
-                        <div style="width:40px; height:40px; border-radius:50%; background:#333; display:flex; align-items:center; justify-content:center; font-weight:bold;">${p.username ? p.username[0].toUpperCase() : 'G'}</div>
+                        <div style="width:40px; height:40px; border-radius:50%; background:#333; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer;" onclick="viewUserProfile('${p.user_id}')">${p.username ? p.username[0].toUpperCase() : 'G'}</div>
                         <div style="flex:1">
-                            <div style="font-weight: bold;">@${p.username}</div>
+                            <span class="username-link" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
                             <div>${p.content}</div>
                             <button class="action-btn" style="background:none; border:none; color:var(--text-dim); cursor:pointer; margin-top:10px;" onclick="toggleReplyInput('${p.id}')">Reply</button>
                         </div>
                     </div>
                     ${postReplies.length > 0 ? `<button class="toggle-replies-btn" id="toggle-btn-${p.id}" onclick="toggleThread('${p.id}')">Show ${postReplies.length} replies</button>` : ''}
-                    <div id="reply-box-${p.id}" style="display:none; padding:10px 52px; gap:10px;">
-                        <input type="text" id="input-${p.id}" style="flex:1; background:#16181c; border:none; color:white; padding:8px; border-radius:20px;">
-                        <button class="main-btn" style="width:auto;" onclick="submitReply('${p.id}')">Reply</button>
-                    </div>
+                    <div id="reply-box-${p.id}" style="display:none; padding:10px 52px; gap:10px;"><input type="text" id="input-${p.id}" style="flex:1; background:#16181c; border:none; color:white; padding:8px; border-radius:20px;"><button class="main-btn" style="width:auto;" onclick="submitReply('${p.id}')">Reply</button></div>
                     <div class="reply-thread-container" id="replies-${p.id}">
-                        ${postReplies.map(r => `<div class="reply-card"><b>@${r.username}</b>: ${r.content}</div>`).join('')}
+                        ${postReplies.map(r => `<div class="reply-card"><b class="username-link" onclick="viewUserProfile('${r.user_id}')">@${r.username}</b>: ${r.content}</div>`).join('')}
                     </div>
                 </div>`;
             }).join('');
             lucide.createIcons();
         }
 
-        function toggleThread(id) {
-            const t = document.getElementById(`replies-${id}`);
-            const b = document.getElementById(`toggle-btn-${id}`);
-            const isH = t.style.display === 'none' || t.style.display === '';
-            t.style.display = isH ? 'block' : 'none';
-            b.innerText = isH ? 'Hide replies' : `Show replies`;
-        }
-
-        function toggleReplyInput(id) {
-            const b = document.getElementById(`reply-box-${id}`);
-            b.style.display = b.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        async function createPost() {
-            const inp = document.getElementById('postInput');
-            if(!inp.value.trim()) return;
-            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: prof.username }]);
-            inp.value = ''; loadPosts();
-        }
-
-        async function submitReply(pid) {
-            const inp = document.getElementById(`input-${pid}`);
-            if(!inp.value.trim()) return;
-            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: prof.username, parent_id: pid }]);
-            inp.value = ''; loadPosts();
-        }
-
-        // --- MESSAGES LOGIC ---
-        async function loadConvoList() {
-            const { data: profiles } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
-            const container = document.getElementById('convoList');
-            container.innerHTML = (profiles || []).map(p => `
-                <div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>
-            `).join('');
-        }
-
-        async function openChat(uid, el) {
-            activeChatId = uid;
-            document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('msgInputArea').style.display = 'flex';
-            loadMessages();
-        }
-
-        async function loadMessages() {
-            if (!activeChatId) return;
-            const { data: msgs } = await _db.from('messages').select('*')
-                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
-                .order('created_at', { ascending: true });
-            const win = document.getElementById('chatWindow');
-            win.innerHTML = (msgs || []).map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
-            win.scrollTop = win.scrollHeight;
-        }
-
-        async function sendDM() {
-            const inp = document.getElementById('dmInput');
-            if(!inp.value.trim()) return;
-            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value }]);
-            inp.value = ''; loadMessages();
-        }
-
-        // --- PROFILE LOGIC ---
-        async function loadProfileData() {
-            const { data: prof } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
-            const { count } = await _db.from('foreigner_posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+        async function loadProfileData(targetUserId = null) {
+            const userId = targetUserId || currentUser.id;
+            const { data: prof } = await _db.from('profiles').select('*').eq('id', userId).single();
+            const { count } = await _db.from('foreigner_posts').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+            
             if(!prof) return;
+
+            const isOwnProfile = userId === currentUser.id;
+
             document.getElementById('profileContent').innerHTML = `
                 <div style="width:100px; height:100px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:3rem;">${prof.username[0].toUpperCase()}</div>
-                <h2>@${prof.username}</h2>
-                <p>${currentUser.email}</p>
-                <div style="margin-top:20px;"><b>Posts:</b> ${count || 0}</div>`;
+                <h2>@${prof.username} ${isOwnProfile ? '(You)' : ''}</h2>
+                ${isOwnProfile ? `<p style="color:var(--text-dim)">${currentUser.email}</p>` : ''}
+                <div style="margin-top:20px; display:flex; justify-content:center; gap:20px;">
+                    <div><b>Posts</b><br>${count || 0}</div>
+                </div>
+                ${!isOwnProfile ? `<button class="main-btn" style="width:auto; margin-top:20px; padding: 10px 30px;" onclick="startChat('${userId}', '${prof.username}')">Message</button>` : ''}
+            `;
         }
+
+        // Helper to quickly jump to chat from a profile
+        function startChat(userId, username) {
+            switchTab('messages', document.getElementById('nav-messages'));
+            // This is a placeholder - in a real app, you'd trigger the click on the convo item
+            setTimeout(() => openChat(userId, null), 100); 
+        }
+
+        // --- Standard Logic (Thread/Reply/DM) ---
+        function toggleThread(id) { const t = document.getElementById(`replies-${id}`), b = document.getElementById(`toggle-btn-${id}`), isH = t.style.display === 'none' || t.style.display === ''; t.style.display = isH ? 'block' : 'none'; b.innerText = isH ? 'Hide replies' : `Show replies`; }
+        function toggleReplyInput(id) { const b = document.getElementById(`reply-box-${id}`); b.style.display = b.style.display === 'flex' ? 'none' : 'flex'; }
+        async function createPost() { const inp = document.getElementById('postInput'); const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single(); await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: prof.username }]); inp.value = ''; loadPosts(); }
+        async function submitReply(pid) { const inp = document.getElementById(`input-${pid}`); const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single(); await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: prof.username, parent_id: pid }]); inp.value = ''; loadPosts(); }
+        async function loadConvoList() { const { data: profiles } = await _db.from('profiles').select('id, username').neq('id', currentUser.id); document.getElementById('convoList').innerHTML = (profiles || []).map(p => `<div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>`).join(''); }
+        async function openChat(uid, el) { activeChatId = uid; if(el) { document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); } document.getElementById('msgInputArea').style.display = 'flex'; loadMessages(); }
+        async function loadMessages() { if (!activeChatId) return; const { data: msgs } = await _db.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true }); const win = document.getElementById('chatWindow'); win.innerHTML = (msgs || []).map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join(''); win.scrollTop = win.scrollHeight; }
+        async function sendDM() { const inp = document.getElementById('dmInput'); if(!inp.value.trim()) return; await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value }]); inp.value = ''; loadMessages(); }
 
         async function init() {
             const { data: { user } } = await _db.auth.getUser();
             if (!user) return window.location.href = 'login-guest.html';
-            currentUser = user;
-            loadPosts();
-            
-            _db.channel('updates').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
-                if (activeChatId && (payload.new.sender_id === activeChatId || payload.new.receiver_id === activeChatId)) loadMessages();
-            }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => {
-                loadPosts();
-            }).subscribe();
+            currentUser = user; loadPosts();
+            _db.channel('updates').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => { if (activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages(); }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
+            lucide.createIcons();
         }
-
         init();
     </script>
 </body>
