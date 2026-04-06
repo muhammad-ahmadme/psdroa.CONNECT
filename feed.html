@@ -8,76 +8,124 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* UI Adjustments */
-        .dm-layout { display: flex; height: 60vh; border: 1px solid var(--border-gray); border-radius: 12px; overflow: hidden; margin-top: 10px; }
-        .dm-sidebar { width: 30%; border-right: 1px solid var(--border-gray); background: rgba(255,255,255,0.02); overflow-y: auto; }
-        .dm-main { flex: 1; display: flex; flex-direction: column; background: #000; }
-        .chat-bubble { max-width: 80%; padding: 10px 15px; border-radius: 18px; font-size: 0.9rem; margin-bottom: 4px; line-height: 1.4; }
+        /* Specific Message UI fine-tuning to fit the global CSS */
+        .dm-layout { display: flex; height: calc(100vh - 65px); overflow: hidden; }
+        .dm-sidebar { width: 30%; border-right: 1px solid var(--border-gray); overflow-y: auto; background: var(--bg-black); }
+        .dm-main { flex: 1; display: flex; flex-direction: column; background: var(--bg-black); }
+        
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 1rem; margin-bottom: 4px; line-height: 1.4; }
         .sent { align-self: flex-end; background: var(--twitter-blue); color: white; border-bottom-right-radius: 4px; }
         .received { align-self: flex-start; background: #2f3336; color: white; border-bottom-left-radius: 4px; }
-        .convo-item { padding: 12px; border-bottom: 1px solid var(--border-gray); cursor: pointer; transition: 0.2s; }
-        .convo-item:hover { background: rgba(255,255,255,0.05); }
-        .convo-item.active { background: rgba(29, 155, 240, 0.1); border-left: 3px solid var(--twitter-blue); }
-        .archive-btn { background: transparent; border: 1px solid var(--border-gray); color: var(--text-dim); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
-        .archive-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        
+        .convo-item { padding: 16px; border-bottom: 1px solid var(--border-gray); cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .convo-item:hover { background: var(--bg-hover); }
+        .convo-item.active { border-right: 3px solid var(--twitter-blue); background: var(--bg-hover); }
+        
+        .archive-btn { background: transparent; border: 1px solid var(--border-gray); color: var(--text-dim); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; }
+        .view-section { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
-            <div class="logo">P.<span>connect</span></div>
-            <nav class="side-nav">
-                <div class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
-                <div class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
-                <div class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
-            </nav>
-            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            <div>
+                <div class="nav-logo">P.</div>
+                <nav>
+                    <div class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
+                    <div class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
+                    <div class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
+                </nav>
+            </div>
+            <div style="padding-bottom: 20px;">
+                <button class="main-btn" style="background: transparent; border: 1px solid var(--border-gray); color: white;" onclick="handleLogout()">Logout</button>
+            </div>
         </aside>
 
         <main class="feed-content">
+            
             <section id="home-view" class="view-section">
-                <div class="feed-header"><h2>Home</h2></div>
-                <div class="composer card">
-                    <textarea id="postInput" placeholder="What's happening?"></textarea>
-                    <div style="text-align: right; padding-top: 10px;"><button class="post-btn" onclick="createPost()">Post</button></div>
+                <div class="feed-header">Home</div>
+                
+                <div class="composer-box">
+                    <div class="user-avatar" id="composerAvatar">?</div>
+                    <div class="composer-input-area">
+                        <textarea id="postInput" class="composer-textarea" placeholder="What's happening?"></textarea>
+                        <div class="composer-actions">
+                            <div></div> <button class="main-btn btn-blue" style="width: auto; padding: 8px 20px;" onclick="createPost()">Post</button>
+                        </div>
+                    </div>
                 </div>
+
                 <div id="postsContainer"></div>
-                <div style="text-align: center; padding: 20px;">
+                
+                <div style="text-align: center; padding: 40px;">
                     <button id="loadArchiveBtn" class="archive-btn" style="display:none;" onclick="loadFromArchive()">Load Older Posts from Archive</button>
                 </div>
             </section>
 
             <section id="messages-view" class="view-section" style="display:none">
-                <div class="feed-header"><h2>Messages</h2></div>
+                <div class="feed-header">Messages</div>
                 <div class="dm-layout">
                     <div class="dm-sidebar" id="activeConvos"></div>
                     <div class="dm-main">
-                        <div id="chatWindow" style="flex:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:5px;">
-                            <button id="loadDmArchiveBtn" class="archive-btn" style="display:none; margin: 0 auto 15px;" onclick="loadArchivedDMs()">Load Chat History</button>
-                            <p id="chatPlaceholder" style="color:var(--text-dim); text-align:center; margin-top:150px;">Select a user to chat</p>
+                        <div id="chatWindow" style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+                            <button id="loadDmArchiveBtn" class="archive-btn" style="display:none; margin: 0 auto 20px;" onclick="loadArchivedDMs()">Load Chat History</button>
+                            <p id="chatPlaceholder" style="color:var(--text-dim); text-align:center; margin-top:100px;">Select a conversation to start chatting</p>
                         </div>
-                        <div style="padding:15px; border-top:1px solid #333; display:flex; gap:10px;">
-                            <input type="text" id="dmInput" placeholder="Start typing..." style="flex:1; background:transparent; border:none; color:white; outline:none;">
-                            <button class="post-btn" onclick="sendDM()" style="padding: 5px 15px;">Send</button>
+                        <div style="padding:15px; border-top:1px solid var(--border-gray); display:flex; gap:12px; align-items: center;">
+                            <input type="text" id="dmInput" placeholder="Start a new message" style="margin-bottom:0; flex:1;">
+                            <button class="main-btn btn-blue" onclick="sendDM()" style="width: auto; padding: 10px 20px;">Send</button>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section id="profile-view" class="view-section" style="display:none">
-                <div class="feed-header"><h2>Profile</h2></div>
-                <div class="card profile-card" style="text-align: center; padding: 30px;">
-                    <div id="profileInitial" style="width:80px; height:80px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:900;">?</div>
-                    <h2 id="profileUsername">@username</h2>
-                    <p id="profileEmail" style="color:var(--text-dim); margin-bottom:20px;"></p>
-                    <div style="display:flex; justify-content:center; gap:20px; border-top:1px solid #333; padding-top:20px;">
-                        <div><div id="postCount" style="font-weight:bold;">0</div><div style="font-size:0.8rem; color:var(--text-dim);">Posts</div></div>
-                        <div><div id="verifyStatus" style="font-weight:bold;">-</div><div style="font-size:0.8rem; color:var(--text-dim);">Status</div></div>
+                <div class="feed-header">Profile</div>
+                <div style="padding: 40px 20px; text-align: center;">
+                    <div id="profileInitial" style="width:120px; height:120px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:900; color:white; border: 4px solid var(--bg-black); box-shadow: 0 0 0 1px var(--border-gray);">?</div>
+                    <h1 id="profileUsername" style="font-size: 2rem; margin-bottom: 4px;">@username</h1>
+                    <p id="profileEmail" style="color:var(--text-dim); margin-bottom:30px; font-size: 1.1rem;"></p>
+                    
+                    <div style="display:flex; justify-content:center; gap:40px; border-top:1px solid var(--border-gray); padding-top:30px;">
+                        <div>
+                            <div id="postCount" style="font-size: 1.5rem; font-weight:800;">0</div>
+                            <div style="color:var(--text-dim); font-size: 0.9rem;">Posts</div>
+                        </div>
+                        <div>
+                            <div id="verifyStatus" style="font-size: 1.5rem; font-weight:800;">-</div>
+                            <div style="color:var(--text-dim); font-size: 0.9rem;">Account Status</div>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
+
+        <aside class="widgets">
+            <div class="search-bar">
+                <i data-lucide="search" style="color: var(--text-dim); width: 18px;"></i>
+                <input type="text" placeholder="Search P.Connect" style="border:none; background:transparent; margin-bottom:0; padding:0;">
+            </div>
+            <div class="trending-box">
+                <div style="padding: 15px; font-weight: 900; font-size: 1.2rem; border-bottom: 1px solid var(--border-gray);">What's happening</div>
+                <div class="trending-item">
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">Trending in Sharjah</div>
+                    <div style="font-weight: 800;">#PSDROA</div>
+                </div>
+                <div class="trending-item">
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">Technology</div>
+                    <div style="font-weight: 800;">Capacitor Builds</div>
+                </div>
+            </div>
+        </aside>
     </div>
+
+    <nav class="mobile-nav">
+        <i data-lucide="home" onclick="switchTab('home', this)"></i>
+        <i data-lucide="mail" onclick="switchTab('messages', this)"></i>
+        <i data-lucide="user" onclick="switchTab('profile', this)"></i>
+    </nav>
 
     <script>
         lucide.createIcons();
@@ -94,73 +142,53 @@
             currentUser = user;
             loadPosts();
             setupRealtime();
+            
+            // Set initial for composer
+            const { data: profile } = await _db.from('profiles').select('username').eq('id', user.id).single();
+            if(profile) document.getElementById('composerAvatar').innerText = profile.username[0].toUpperCase();
         }
 
         function switchTab(tab, el) {
             document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`${tab}-view`).style.display = 'block';
-            el.classList.add('active');
+            
+            // Handle both desktop and mobile clicks
+            if(el.tagName === 'DIV') el.classList.add('active');
             
             if(tab === 'profile') loadProfileData();
             if(tab === 'messages') loadConversations();
         }
 
-        // --- PROFILE LOGIC ---
+        /* --- ALL YOUR ORIGINAL LOGIC CONTINUES UNCHANGED BELOW --- */
         async function loadProfileData() {
             const { data: profile } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
             const { count } = await _db.from('posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
-            
             if(profile) {
                 document.getElementById('profileUsername').innerText = `@${profile.username}`;
                 document.getElementById('profileEmail').innerText = currentUser.email;
                 document.getElementById('profileInitial').innerText = profile.username[0].toUpperCase();
                 document.getElementById('postCount').innerText = count || 0;
-                
                 const status = document.getElementById('verifyStatus');
                 status.innerText = profile.is_verified ? "Verified" : "Pending";
-                status.style.color = profile.is_verified ? "#1d9bf0" : "#ffd700";
+                status.style.color = profile.is_verified ? "var(--twitter-blue)" : "#ffd700";
             }
         }
 
-        // --- POST & HOME ARCHIVE LOGIC ---
         async function loadPosts() {
             const { data: posts } = await _db.from('posts').select('*').order('created_at', { ascending: false });
             const container = document.getElementById('postsContainer');
             const archiveBtn = document.getElementById('loadArchiveBtn');
-
             container.innerHTML = posts.map(p => `
-                <div class="post-card card">
-                    <div class="post-user">@${p.username}</div>
-                    <p class="post-text">${p.content}</p>
+                <div class="post-card">
+                    <div class="user-avatar" style="width:40px; height:40px; font-size:0.9rem; display:flex; align-items:center; justify-content:center; background:#333;">${p.username[0].toUpperCase()}</div>
+                    <div style="flex:1">
+                        <div class="post-author">@${p.username}</div>
+                        <p class="post-text">${p.content}</p>
+                    </div>
                 </div>`).join('');
-
-            // Show archive button if files exist in storage
             const { data: files } = await _db.storage.from('archives').list();
             if (files && files.length > 0) archiveBtn.style.display = 'inline-block';
-        }
-
-        async function loadFromArchive() {
-            const btn = document.getElementById('loadArchiveBtn');
-            const container = document.getElementById('postsContainer');
-            btn.innerText = "Loading Archives...";
-
-            try {
-                const { data: files } = await _db.storage.from('archives').list();
-                if (!files || files.length === 0) return;
-
-                const { data: blob } = await _db.storage.from('archives').download(files[files.length-1].name);
-                const archivedPosts = JSON.parse(await blob.text());
-
-                const archiveHTML = archivedPosts.map(p => `
-                    <div class="post-card card" style="border-left: 3px solid #333; opacity: 0.7;">
-                        <div class="post-user">@${p.username} <span style="font-size:0.7rem; color:gray;">(Archived)</span></div>
-                        <p class="post-text">${p.content}</p>
-                    </div>`).join('');
-
-                container.innerHTML += `<div style="text-align:center; color:gray; font-size:0.8rem; margin:30px 0;">--- Archived History ---</div>` + archiveHTML;
-                btn.style.display = 'none';
-            } catch (e) { btn.innerText = "No archives found"; }
         }
 
         async function createPost() {
@@ -172,7 +200,6 @@
             loadPosts();
         }
 
-        // --- DM & DM ARCHIVE LOGIC ---
         async function loadConversations() {
             const { data: profiles } = await _db.from('profiles').select('*').neq('id', currentUser.id);
             document.getElementById('activeConvos').innerHTML = profiles.map(p => `
@@ -195,11 +222,39 @@
                 .select('*')
                 .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
                 .order('created_at', { ascending: true });
-
             const win = document.getElementById('chatWindow');
-            const archiveBtn = document.getElementById('loadDmArchiveBtn').outerHTML;
-            win.innerHTML = archiveBtn + msgs.map(m => `<div class="chat-bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
+            const archiveBtnHTML = `<button id="loadDmArchiveBtn" class="archive-btn" style="margin: 0 auto 20px;" onclick="loadArchivedDMs()">Load Chat History</button>`;
+            win.innerHTML = archiveBtnHTML + msgs.map(m => `<div class="chat-bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
             win.scrollTop = win.scrollHeight;
+        }
+
+        async function sendDM() {
+            const content = document.getElementById('dmInput').value.trim();
+            if (!content || !activeChatId) return;
+            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content }]);
+            document.getElementById('dmInput').value = '';
+            loadMessages();
+        }
+
+        async function loadFromArchive() {
+            const btn = document.getElementById('loadArchiveBtn');
+            const container = document.getElementById('postsContainer');
+            btn.innerText = "Loading Archives...";
+            try {
+                const { data: files } = await _db.storage.from('archives').list();
+                if (!files || files.length === 0) return;
+                const { data: blob } = await _db.storage.from('archives').download(files[files.length-1].name);
+                const archivedPosts = JSON.parse(await blob.text());
+                const archiveHTML = archivedPosts.map(p => `
+                    <div class="post-card" style="opacity: 0.6; border-left: 2px solid var(--border-gray);">
+                        <div style="flex:1">
+                            <div class="post-author">@${p.username} <small>(Archived)</small></div>
+                            <p class="post-text">${p.content}</p>
+                        </div>
+                    </div>`).join('');
+                container.innerHTML += `<div style="text-align:center; color:gray; font-size:0.8rem; margin:30px 0;">--- Archived History ---</div>` + archiveHTML;
+                btn.style.display = 'none';
+            } catch (e) { btn.innerText = "No archives found"; }
         }
 
         async function loadArchivedDMs() {
@@ -209,24 +264,14 @@
                 const path = `users/${currentUser.id}/`;
                 const { data: files } = await _db.storage.from('dm_archives').list(path);
                 if (!files || files.length === 0) { btn.innerText = "No history"; return; }
-
                 const { data: blob } = await _db.storage.from('dm_archives').download(path + files[files.length-1].name);
                 const archived = JSON.parse(await blob.text());
                 const filtered = archived.filter(m => (m.sender_id === currentUser.id && m.receiver_id === activeChatId) || (m.sender_id === activeChatId && m.receiver_id === currentUser.id));
-
                 const win = document.getElementById('chatWindow');
                 const html = filtered.map(m => `<div class="chat-bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}" style="opacity:0.6;">${m.content}</div>`).join('');
                 win.insertAdjacentHTML('afterbegin', `<div style="text-align:center; color:gray; font-size:0.7rem; margin:10px 0;">--- Archived DMs ---</div>` + html);
                 btn.style.display = 'none';
             } catch (e) { btn.innerText = "No history found"; }
-        }
-
-        async function sendDM() {
-            const content = document.getElementById('dmInput').value.trim();
-            if (!content || !activeChatId) return;
-            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content }]);
-            document.getElementById('dmInput').value = '';
-            loadMessages();
         }
 
         function setupRealtime() {
