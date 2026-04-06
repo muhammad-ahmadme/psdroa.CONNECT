@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSDROA.connect | Pro Edition</title>
+    <title>PSDROA.connect | Global Network</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -16,23 +16,20 @@
             --bg-glass: rgba(0, 0, 0, 0.85);
         }
 
-        /* Loading Shield */
         #auth-shield {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-black); z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
         }
 
         body { 
             background-color: var(--bg-black); color: var(--text-main); margin: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            overflow-y: scroll;
         }
         
-        .app-container { display: flex; min-height: 100vh; max-width: 1250px; margin: 0 auto; opacity: 0; }
+        .app-container { display: flex; min-height: 100vh; max-width: 1250px; margin: 0 auto; opacity: 0; transition: opacity 0.4s; }
         
-        /* Sidebar Enhancements */
+        /* Sidebar */
         .sidebar { 
             width: 275px; border-right: 1px solid var(--border-dark); padding: 10px 12px; 
             display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; 
@@ -40,85 +37,89 @@
 
         .nav-item { 
             display: flex; align-items: center; gap: 18px; padding: 14px 20px; font-size: 1.25rem; 
-            cursor: pointer; border-radius: 30px; transition: 0.2s; margin: 2px 0; color: var(--text-main);
-            width: fit-content;
+            cursor: pointer; border-radius: 30px; transition: 0.2s; margin: 2px 0;
         }
         .nav-item:hover { background: rgba(255,255,255,0.1); }
-        .nav-item.active { font-weight: 800; }
+        .nav-item.active { font-weight: 800; color: var(--connect-blue); }
 
-        /* Feed Logic */
+        /* Feed & Content */
         .feed-content { flex: 1; max-width: 600px; border-right: 1px solid var(--border-dark); min-height: 100vh; }
         
         .post-card { 
             padding: 16px; display: flex; gap: 12px; border-bottom: 1px solid var(--border-dark); 
-            transition: background 0.2s; cursor: pointer;
         }
-        .post-card:hover { background: rgba(255,255,255,0.02); }
 
         .user-avatar { 
             width: 48px; height: 48px; border-radius: 50%; background: #333; 
             display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;
-            overflow: hidden;
         }
 
-        .post-content { flex: 1; line-height: 1.5; font-size: 15px; }
+        .post-content { flex: 1; font-size: 15px; }
         .post-meta { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
-        .username { font-weight: 700; color: white; }
-        .timestamp { color: var(--text-dim); font-size: 14px; }
+        .username { font-weight: 700; cursor: pointer; }
+        .username:hover { text-decoration: underline; }
 
-        /* Media / Link Styling */
-        .post-link { color: var(--connect-blue); text-decoration: none; }
-        .post-link:hover { text-decoration: underline; }
+        /* Media Handling */
+        .media-container { margin-top: 12px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-dark); }
+        .media-container img, .media-container video { width: 100%; display: block; max-height: 500px; object-fit: cover; }
 
-        /* UI Components */
+        /* Buttons */
         .main-btn { 
             background: var(--connect-blue); color: white; border: none; border-radius: 30px; 
-            padding: 10px 24px; font-weight: 700; cursor: pointer; transition: 0.2s;
+            padding: 10px 24px; font-weight: 700; cursor: pointer;
         }
-        .main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .main-btn:disabled { opacity: 0.5; }
 
-        .dm-layout { display: flex; height: 85vh; margin: 10px; border: 1px solid var(--border-dark); border-radius: 16px; overflow: hidden; }
-        .dm-sidebar { width: 350px; border-right: 1px solid var(--border-dark); background: black; }
-        
-        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: black; }
-        .bubble { padding: 10px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; }
-        .sent { align-self: flex-end; background: var(--connect-blue); border-bottom-right-radius: 4px; }
-        .received { align-self: flex-start; background: #2f3336; border-bottom-left-radius: 4px; }
+        /* DM UI */
+        .dm-layout { display: flex; height: 90vh; border: 1px solid var(--border-dark); border-radius: 16px; margin: 10px; overflow: hidden; }
+        .dm-sidebar { width: 300px; border-right: 1px solid var(--border-dark); overflow-y: auto; }
+        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-dark); cursor: pointer; }
+        .convo-item.active { background: rgba(29, 155, 240, 0.1); }
+        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { padding: 10px 16px; border-radius: 20px; max-width: 70%; }
+        .sent { align-self: flex-end; background: var(--connect-blue); }
+        .received { align-self: flex-start; background: #2f3336; }
 
-        @media (max-width: 1000px) { .sidebar { width: 80px; } .sidebar span, .sidebar .main-btn span { display: none; } }
+        @media (max-width: 1000px) { .sidebar { width: 80px; } .sidebar span { display: none; } }
     </style>
 </head>
 <body>
 
     <div id="auth-shield">
-        <div style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px;">PSDROA</div>
-        <div id="loader-bar" style="width: 100px; height: 2px; background: #333; margin-top: 10px; position: relative; overflow: hidden;">
-            <div style="position: absolute; width: 50%; height: 100%; background: var(--connect-blue); animation: load 1.5s infinite;"></div>
-        </div>
+        <div style="font-weight: 900; font-size: 2.5rem;">PSDROA</div>
+        <div style="color: var(--text-dim); margin-top: 10px;">Verifying Secure Token...</div>
     </div>
 
     <div class="app-container" id="main-app">
         <aside class="sidebar">
-            <div style="font-weight: 900; font-size: 1.8rem; padding: 15px; cursor: pointer;" onclick="location.reload()">P.</div>
+            <div style="font-weight: 900; font-size: 1.8rem; padding: 15px;">P.</div>
             <nav style="flex: 1;">
-                <div class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
-                <div class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
-                <div class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
+                <div class="nav-item active" id="btn-home" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
+                <div class="nav-item" id="btn-messages" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
+                <div class="nav-item" id="btn-profile" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
             </nav>
-            <button class="main-btn" onclick="handleLogout()" style="background: transparent; border: 1px solid var(--border-dark); margin-bottom: 20px;">Logout</button>
+            <button class="main-btn" onclick="handleLogout()" style="background:transparent; border:1px solid var(--border-dark); margin-bottom: 20px;">Logout</button>
         </aside>
 
         <main class="feed-content">
             <section id="home-view" class="view-section">
-                <div style="padding: 15px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid var(--border-dark); background: var(--bg-glass); backdrop-filter: blur(12px); position: sticky; top:0; z-index:100;">Home</div>
-                
-                <div style="padding: 16px; border-bottom: 1px solid var(--border-dark); display: flex; gap: 12px;">
-                    <div class="user-avatar" id="my-avatar">?</div>
-                    <div style="flex: 1;">
-                        <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.3rem; resize:none; outline:none; min-height: 80px;" placeholder="What's happening?"></textarea>
-                        <div style="display:flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-dark); padding-top: 12px;">
-                            <div style="color: var(--connect-blue);"><i data-lucide="image" style="cursor: pointer; width: 20px;"></i></div>
-                            <button class="main-btn" id="postBtn" onclick="createPost()">Post</button>
+                <div style="padding:15px; font-weight:800; font-size:1.2rem; border-bottom:1px solid var(--border-dark);">Home</div>
+                <div style="padding: 16px; border-bottom: 1px solid var(--border-dark);">
+                    <div style="display: flex; gap: 12px;">
+                        <div class="user-avatar" id="nav-avatar">?</div>
+                        <div style="flex: 1;">
+                            <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; outline:none; resize:none;" placeholder="What is happening?!"></textarea>
+                            <div id="mediaPreview" style="display:none; margin-top:10px; position:relative;">
+                                <img id="pImg" src="" style="width:100%; border-radius:15px;">
+                                <button onclick="clearMedia()" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer;">&times;</button>
+                            </div>
+                            <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px; border-top:1px solid var(--border-dark); padding-top:10px;">
+                                <div style="color:var(--connect-blue); cursor:pointer;" onclick="document.getElementById('mInp').click()">
+                                    <i data-lucide="image"></i>
+                                    <input type="file" id="mInp" hidden accept="image/*" onchange="handlePreview()">
+                                </div>
+                                <button class="main-btn" id="pBtn" onclick="createPost()">Post</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,10 +129,10 @@
             <section id="messages-view" class="view-section" style="display:none">
                 <div class="dm-layout">
                     <div class="dm-sidebar" id="convoList"></div>
-                    <div style="flex: 1; display: flex; flex-direction: column;">
+                    <div style="flex:1; display:flex; flex-direction:column;">
                         <div id="chatWindow"></div>
-                        <div id="msgInputArea" style="padding: 15px; background: black; display: none; gap: 10px;">
-                            <input type="text" id="dmInput" style="flex:1; background: #202327; border:none; color:white; padding:12px 18px; border-radius: 25px;" placeholder="Start a new message">
+                        <div id="msgInpBox" style="padding:15px; display:none; gap:10px;">
+                            <input type="text" id="dmInp" style="flex:1; background:#202327; border:none; color:white; padding:12px; border-radius:20px;" placeholder="Start a message">
                             <button class="main-btn" onclick="sendDM()">Send</button>
                         </div>
                     </div>
@@ -144,8 +145,6 @@
         </main>
     </div>
 
-    <style>@keyframes load { 0% { left: -50%; } 100% { left: 100%; } }</style>
-
     <script>
         const _URL = 'https://aelkiokxzzfnfvermrjy.supabase.co';
         const _KEY = 'sb_publishable_r8ncudJ8R49sXNlsE3OKvA_D4Ak_CHC';
@@ -153,149 +152,162 @@
         
         let currentUser = null;
         let activeChatId = null;
-        let cachedUsername = "";
+        let myUser = "";
 
-        /* --- FOOLPROOF CORE --- */
         async function init() {
             const { data: { session } } = await _db.auth.getSession();
-            if (!session) return window.location.replace('login.html');
-
-            currentUser = session.user;
-            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            cachedUsername = prof?.username || "user";
+            if(!session) return window.location.replace('login.html');
             
-            document.getElementById('my-avatar').innerText = cachedUsername[0].toUpperCase();
+            currentUser = session.user;
+            const { data: p } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            myUser = p?.username || "user";
+            
+            document.getElementById('nav-avatar').innerText = myUser[0].toUpperCase();
             document.getElementById('main-app').style.opacity = '1';
-            document.getElementById('auth-shield').style.opacity = '0';
-            setTimeout(() => document.getElementById('auth-shield').remove(), 500);
+            document.getElementById('auth-shield').remove();
 
             loadPosts();
             setupRealtime();
             lucide.createIcons();
         }
 
-        /* --- OPTIMISTIC UI POSTING --- */
+        /* --- POSTING & MEDIA --- */
+        function handlePreview() {
+            const file = document.getElementById('mInp').files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('pImg').src = e.target.result;
+                    document.getElementById('mediaPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearMedia() {
+            document.getElementById('mInp').value = "";
+            document.getElementById('mediaPreview').style.display = 'none';
+        }
+
         async function createPost() {
-            const inp = document.getElementById('postInput');
-            const btn = document.getElementById('postBtn');
-            const content = inp.value.trim();
-            if(!content) return;
+            const txt = document.getElementById('postInput').value.trim();
+            const file = document.getElementById('mInp').files[0];
+            const btn = document.getElementById('pBtn');
+            if(!txt && !file) return;
 
             btn.disabled = true;
-            
-            // 1. Optimistic UI: Add to top of feed instantly
-            const tempId = Date.now();
-            renderSinglePost({
-                id: tempId,
-                username: cachedUsername,
-                content: content,
-                created_at: new Date().toISOString(),
-                isOptimistic: true
-            }, true);
+            let mUrl = null;
 
-            inp.value = '';
-            
-            // 2. Real DB Call
-            const { error } = await _db.from('foreigner_posts').insert([{ 
-                user_id: currentUser.id, 
-                content: content, 
-                username: cachedUsername 
+            if(file) {
+                const fName = `${Date.now()}-${file.name}`;
+                const { data } = await _db.storage.from('media').upload(fName, file);
+                if(data) mUrl = _db.storage.from('media').getPublicUrl(fName).data.publicUrl;
+            }
+
+            await _db.from('foreigner_posts').insert([{ 
+                user_id: currentUser.id, username: myUser, content: txt, media_url: mUrl 
             }]);
 
-            if (error) alert("Sync failed. Check connection.");
+            document.getElementById('postInput').value = "";
+            clearMedia();
             btn.disabled = false;
-            loadPosts(); 
+            loadPosts();
         }
 
-        /* --- RENDER LOGIC (WITH AUTO-LINKS) --- */
-        function formatText(text) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" class="post-link">${url}</a>`);
+        /* --- RENDERING --- */
+        async function loadPosts() {
+            const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
+            const cont = document.getElementById('postsContainer');
+            cont.innerHTML = "";
+            (posts || []).forEach(p => {
+                if(!p.parent_id) renderPost(p, cont);
+            });
         }
 
-        function renderSinglePost(p, toTop = false) {
-            const container = document.getElementById('postsContainer');
-            const time = new Date(p.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
+        function renderPost(p, target) {
             const html = `
-                <div class="post-card" id="post-${p.id}" style="${p.isOptimistic ? 'opacity:0.6' : ''}">
+                <div class="post-card">
                     <div class="user-avatar">${p.username[0].toUpperCase()}</div>
                     <div class="post-content">
                         <div class="post-meta">
-                            <span class="username">@${p.username}</span>
-                            <span class="timestamp">· ${time}</span>
+                            <span class="username" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
                         </div>
-                        <div>${formatText(p.content)}</div>
+                        <div style="margin-top:4px;">${p.content}</div>
+                        ${p.media_url ? `<div class="media-container"><img src="${p.media_url}"></div>` : ''}
                     </div>
                 </div>`;
+            target.insertAdjacentHTML('beforeend', html);
+        }
+
+        /* --- PRO PROFILE --- */
+        function viewUserProfile(uid) { switchTab('profile', document.getElementById('btn-profile')); loadProfile(uid); }
+        async function loadProfile(uid) {
+            const targetId = uid || currentUser.id;
+            const { data: p } = await _db.from('profiles').select('*').eq('id', targetId).single();
+            const { count: posts } = await _db.from('foreigner_posts').select('*', { count: 'exact', head:true }).eq('user_id', targetId);
             
-            if(toTop) container.insertAdjacentHTML('afterbegin', html);
-            else container.insertAdjacentHTML('beforeend', html);
+            document.getElementById('profileContent').innerHTML = `
+                <div style="height:150px; background:#222;"></div>
+                <div style="padding:15px; position:relative;">
+                    <div style="width:100px; height:100px; border-radius:50%; background:var(--connect-blue); border:4px solid black; margin-top:-60px; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:bold;">
+                        ${p.username[0].toUpperCase()}
+                    </div>
+                    <h2 style="margin:10px 0 0 0;">${p.username}</h2>
+                    <div style="color:gray;">@${p.username.toLowerCase()}</div>
+                    <div style="margin-top:15px; display:flex; gap:20px; color:gray;">
+                        <span><b>${posts}</b> Posts</span>
+                    </div>
+                    ${targetId !== currentUser.id ? `<button class="main-btn" style="margin-top:15px;" onclick="startChat('${targetId}')">Message</button>` : ''}
+                </div>
+                <div id="uPosts" style="border-top:1px solid var(--border-dark); margin-top:20px;"></div>
+            `;
+            
+            const { data: uposts } = await _db.from('foreigner_posts').select('*').eq('user_id', targetId).order('created_at', { ascending:false });
+            (uposts || []).forEach(up => renderPost(up, document.getElementById('uPosts')));
         }
 
-        async function loadPosts() {
-            const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
-            const container = document.getElementById('postsContainer');
-            container.innerHTML = '';
-            (posts || []).forEach(p => { if(!p.parent_id) renderSinglePost(p); });
-        }
-
-        /* --- MESSAGING & PROFILE --- */
-        function switchTab(tab, el) {
-            document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(`${tab}-view`).style.display = 'block';
-            el.classList.add('active');
-            if(tab === 'messages') { activeChatId = null; loadConvoList(); }
-        }
-
+        /* --- MESSAGING --- */
+        function startChat(uid) { switchTab('messages', document.getElementById('btn-messages')); setTimeout(() => openChat(uid), 200); }
         async function loadConvoList() {
             const { data: profs } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
-            document.getElementById('convoList').innerHTML = profs.map(p => `
-                <div class="convo-item" onclick="openChat('${p.id}', this)">
-                    <b style="font-size:1.1rem;">@${p.username}</b>
-                    <div style="color:gray; font-size:0.8rem;">Click to message</div>
-                </div>
-            `).join('');
+            document.getElementById('convoList').innerHTML = profs.map(p => `<div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>`).join('');
         }
-
         async function openChat(uid, el) {
             activeChatId = uid;
             document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('msgInputArea').style.display = 'flex';
+            if(el) el.classList.add('active');
+            document.getElementById('msgInpBox').style.display = 'flex';
             loadMessages();
         }
-
         async function loadMessages() {
             if(!activeChatId) return;
-            const { data: msgs } = await _db.from('messages').select('*')
-                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
-                .order('created_at', { ascending: true });
-            
+            const { data: msgs } = await _db.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending:true });
             const win = document.getElementById('chatWindow');
-            win.innerHTML = (msgs || []).map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
+            win.innerHTML = msgs.map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
             win.scrollTop = win.scrollHeight;
         }
-
         async function sendDM() {
-            const inp = document.getElementById('dmInput');
-            if(!inp.value.trim()) return;
-            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value.trim() }]);
-            inp.value = '';
-            loadMessages();
+            const txt = document.getElementById('dmInp').value.trim(); if(!txt) return;
+            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: txt }]);
+            document.getElementById('dmInp').value = ""; loadMessages();
         }
 
-        async function handleLogout() {
-            await _db.auth.signOut();
-            localStorage.clear();
-            window.location.replace('login.html');
+        /* --- UTIL --- */
+        function switchTab(tab, el) {
+            document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`${tab}-view`).style.display = 'block';
+            el.classList.add('active');
+            if(tab === 'messages') loadConvoList();
+            if(tab === 'profile') loadProfile(currentUser.id);
         }
 
+        async function handleLogout() { await _db.auth.signOut(); localStorage.clear(); window.location.replace('login.html'); }
+        
         function setupRealtime() {
-            _db.channel('system').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
-                if (activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages();
-            }).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
+            _db.channel('room1').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                if(activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages();
+            }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
         }
 
         init();
