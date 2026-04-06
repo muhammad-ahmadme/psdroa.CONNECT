@@ -28,12 +28,16 @@
         </div>
 
         <p style="text-align: center; margin-top: 25px; font-size: 0.8rem; color: #71767b;">
-            Not a guest? <a href="signup-guest.html" style="color: #1d9bf0; text-decoration: none;">Request Access</a>
+            Don't have a guest account? <a href="signup-guest.html" style="color: #1d9bf0; text-decoration: none;">Register here</a>
+        </p>
+        
+        <p style="text-align: center; margin-top: 10px; font-size: 0.8rem;">
+            <a href="login.html" style="color: #71767b; text-decoration: none;">Student Sign In</a>
         </p>
     </div>
 
     <script>
-        // --- FOREIGNER PROJECT CONFIG ---
+        // --- FOREIGNER PROJECT CONFIG (Project B) ---
         const G_URL = 'https://aelkiokxzzfnfvermrjy.supabase.co';
         const G_KEY = 'sb_publishable_r8ncudJ8R49sXNlsE3OKvA_D4Ak_CHC';
         const _db = supabase.createClient(G_URL, G_KEY);
@@ -45,7 +49,11 @@
             const btn = document.getElementById('loginBtn');
 
             errBox.style.display = 'none';
-            if(!email || !pass) return;
+            if(!email || !pass) {
+                errBox.innerText = "Please enter email and password.";
+                errBox.style.display = 'block';
+                return;
+            }
 
             btn.innerText = "Authenticating...";
             btn.disabled = true;
@@ -61,7 +69,7 @@
                 btn.innerText = "Sign In";
                 btn.disabled = false;
             } else {
-                // Success! Send them to the Foreigner-only feed
+                // Success! Redirect to the Foreigner Feed
                 window.location.href = 'guest-feed.html';
             }
         }
