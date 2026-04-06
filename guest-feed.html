@@ -3,135 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSDROA.connect | Global Network</title>
+    <title>PSDROA.connect | Pro Edition</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --connect-blue: #00a2ff;
+            --connect-blue: #1d9bf0;
             --border-dark: #2f3336;
             --text-main: #eff3f4;
             --text-dim: #71767b;
             --bg-black: #000;
-            --bg-hover: rgba(255, 255, 255, 0.05);
+            --bg-glass: rgba(0, 0, 0, 0.85);
         }
 
-        /* Loading Shield - Prevents Account Switching Glitches */
+        /* Loading Shield */
         #auth-shield {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-black); z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease;
         }
 
         body { 
             background-color: var(--bg-black); color: var(--text-main); margin: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            overflow-x: hidden; 
+            overflow-y: scroll;
         }
         
-        .app-container { display: flex; min-height: 100vh; opacity: 0; transition: opacity 0.3s ease; }
+        .app-container { display: flex; min-height: 100vh; max-width: 1250px; margin: 0 auto; opacity: 0; }
+        
+        /* Sidebar Enhancements */
         .sidebar { 
-            width: 275px; border-right: 1px solid var(--border-dark); padding: 10px 20px; 
+            width: 275px; border-right: 1px solid var(--border-dark); padding: 10px 12px; 
             display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; 
         }
-        .feed-content { flex: 1; max-width: 600px; border-right: 1px solid var(--border-dark); min-height: 100vh; }
 
         .nav-item { 
-            display: flex; align-items: center; gap: 15px; padding: 12px; font-size: 1.2rem; 
-            cursor: pointer; border-radius: 30px; transition: 0.2s; margin: 4px 0; color: var(--text-main);
+            display: flex; align-items: center; gap: 18px; padding: 14px 20px; font-size: 1.25rem; 
+            cursor: pointer; border-radius: 30px; transition: 0.2s; margin: 2px 0; color: var(--text-main);
+            width: fit-content;
         }
-        .nav-item:hover { background: var(--bg-hover); }
-        .nav-item.active { font-weight: bold; color: var(--connect-blue); }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item.active { font-weight: 800; }
 
-        .search-container { 
-            padding: 10px 15px; position: sticky; top: 0; background: rgba(0,0,0,0.8); 
-            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-dark); z-index: 10; 
+        /* Feed Logic */
+        .feed-content { flex: 1; max-width: 600px; border-right: 1px solid var(--border-dark); min-height: 100vh; }
+        
+        .post-card { 
+            padding: 16px; display: flex; gap: 12px; border-bottom: 1px solid var(--border-dark); 
+            transition: background 0.2s; cursor: pointer;
         }
-        .search-input { 
-            width: 100%; background: #202327; border: 1px solid transparent; color: white; 
-            padding: 12px 15px; border-radius: 20px; outline: none; 
-        }
-        .search-input:focus { border-color: var(--connect-blue); background: black; }
+        .post-card:hover { background: rgba(255,255,255,0.02); }
 
-        .post-card { padding: 15px; display: flex; gap: 12px; border-bottom: 1px solid var(--border-dark); }
         .user-avatar { 
-            width: 40px; height: 40px; border-radius: 50%; background: #333; 
-            display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; 
+            width: 48px; height: 48px; border-radius: 50%; background: #333; 
+            display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;
+            overflow: hidden;
         }
-        .username-link { font-weight: bold; cursor: pointer; color: white; text-decoration: none; }
-        .username-link:hover { text-decoration: underline; color: var(--connect-blue); }
-        
-        .reply-thread { margin-left: 52px; border-left: 2px solid var(--border-dark); padding-left: 10px; }
 
-        .dm-layout { display: flex; height: 75vh; border: 1px solid var(--border-dark); border-radius: 16px; overflow: hidden; margin: 20px; }
-        .dm-sidebar { width: 35%; border-right: 1px solid var(--border-dark); overflow-y: auto; }
-        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-dark); cursor: pointer; }
-        .convo-item.active { background: rgba(0, 162, 255, 0.1); border-left: 4px solid var(--connect-blue); }
-        
-        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; }
-        .sent { align-self: flex-end; background: var(--connect-blue); }
-        .received { align-self: flex-start; background: #2f3336; }
+        .post-content { flex: 1; line-height: 1.5; font-size: 15px; }
+        .post-meta { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+        .username { font-weight: 700; color: white; }
+        .timestamp { color: var(--text-dim); font-size: 14px; }
 
+        /* Media / Link Styling */
+        .post-link { color: var(--connect-blue); text-decoration: none; }
+        .post-link:hover { text-decoration: underline; }
+
+        /* UI Components */
         .main-btn { 
-            width: 100%; padding: 12px; border-radius: 30px; border: none; 
-            font-weight: bold; cursor: pointer; background: var(--connect-blue); color: white; 
+            background: var(--connect-blue); color: white; border: none; border-radius: 30px; 
+            padding: 10px 24px; font-weight: 700; cursor: pointer; transition: 0.2s;
         }
+        .main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar span { display: none; } }
+        .dm-layout { display: flex; height: 85vh; margin: 10px; border: 1px solid var(--border-dark); border-radius: 16px; overflow: hidden; }
+        .dm-sidebar { width: 350px; border-right: 1px solid var(--border-dark); background: black; }
+        
+        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: black; }
+        .bubble { padding: 10px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; }
+        .sent { align-self: flex-end; background: var(--connect-blue); border-bottom-right-radius: 4px; }
+        .received { align-self: flex-start; background: #2f3336; border-bottom-left-radius: 4px; }
+
+        @media (max-width: 1000px) { .sidebar { width: 80px; } .sidebar span, .sidebar .main-btn span { display: none; } }
     </style>
 </head>
 <body>
+
     <div id="auth-shield">
-        <div style="font-weight: 900; font-size: 2rem; margin-bottom: 20px;">PSDROA.<span style="color:var(--connect-blue)">connect</span></div>
-        <div style="color: var(--text-dim);">Syncing Secure Session...</div>
+        <div style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px;">PSDROA</div>
+        <div id="loader-bar" style="width: 100px; height: 2px; background: #333; margin-top: 10px; position: relative; overflow: hidden;">
+            <div style="position: absolute; width: 50%; height: 100%; background: var(--connect-blue); animation: load 1.5s infinite;"></div>
+        </div>
     </div>
 
     <div class="app-container" id="main-app">
         <aside class="sidebar">
-            <div style="font-weight: 900; font-size: 1.8rem; padding: 20px 10px;">PSDROA.<span style="color:var(--connect-blue)">connect</span></div>
-            <nav>
-                <div id="nav-home" class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="globe"></i> <span>Global Feed</span></div>
-                <div id="nav-messages" class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
-                <div id="nav-profile" class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>My Profile</span></div>
+            <div style="font-weight: 900; font-size: 1.8rem; padding: 15px; cursor: pointer;" onclick="location.reload()">P.</div>
+            <nav style="flex: 1;">
+                <div class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
+                <div class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
+                <div class="nav-item" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
             </nav>
-            <button class="main-btn" onclick="handleLogout()" style="margin-top: auto; margin-bottom: 20px; background: transparent; border: 1px solid var(--border-dark);">Logout</button>
+            <button class="main-btn" onclick="handleLogout()" style="background: transparent; border: 1px solid var(--border-dark); margin-bottom: 20px;">Logout</button>
         </aside>
 
         <main class="feed-content">
             <section id="home-view" class="view-section">
-                <div class="search-container">
-                    <input type="text" id="feedSearch" class="search-input" placeholder="Search Connect..." oninput="loadPosts()">
-                </div>
-                <div style="padding: 20px; border-bottom: 1px solid var(--border-dark);">
-                    <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.2rem; resize:none; outline:none;" placeholder="What's happening?"></textarea>
-                    <div style="display: flex; justify-content: flex-end; padding-top: 15px;">
-                        <button class="main-btn" style="width:auto; padding: 8px 25px;" onclick="createPost()">Post</button>
+                <div style="padding: 15px; font-size: 1.2rem; font-weight: 800; border-bottom: 1px solid var(--border-dark); background: var(--bg-glass); backdrop-filter: blur(12px); position: sticky; top:0; z-index:100;">Home</div>
+                
+                <div style="padding: 16px; border-bottom: 1px solid var(--border-dark); display: flex; gap: 12px;">
+                    <div class="user-avatar" id="my-avatar">?</div>
+                    <div style="flex: 1;">
+                        <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.3rem; resize:none; outline:none; min-height: 80px;" placeholder="What's happening?"></textarea>
+                        <div style="display:flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-dark); padding-top: 12px;">
+                            <div style="color: var(--connect-blue);"><i data-lucide="image" style="cursor: pointer; width: 20px;"></i></div>
+                            <button class="main-btn" id="postBtn" onclick="createPost()">Post</button>
+                        </div>
                     </div>
                 </div>
                 <div id="postsContainer"></div>
             </section>
 
             <section id="messages-view" class="view-section" style="display:none">
-                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-dark);">Direct Messages</div>
                 <div class="dm-layout">
                     <div class="dm-sidebar" id="convoList"></div>
-                    <div class="dm-main" style="display:flex; flex-direction:column; flex:1;">
+                    <div style="flex: 1; display: flex; flex-direction: column;">
                         <div id="chatWindow"></div>
-                        <div id="msgInputArea" style="padding:15px; border-top:1px solid var(--border-dark); display:none; gap:12px;">
-                            <input type="text" id="dmInput" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px;">
-                            <button class="main-btn" onclick="sendDM()" style="width: auto; padding: 0 20px;">Send</button>
+                        <div id="msgInputArea" style="padding: 15px; background: black; display: none; gap: 10px;">
+                            <input type="text" id="dmInput" style="flex:1; background: #202327; border:none; color:white; padding:12px 18px; border-radius: 25px;" placeholder="Start a new message">
+                            <button class="main-btn" onclick="sendDM()">Send</button>
                         </div>
                     </div>
                 </div>
             </section>
 
             <section id="profile-view" class="view-section" style="display:none">
-                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-dark);">Profile</div>
-                <div id="profileContent" style="padding: 40px 20px; text-align: center;"></div>
+                <div id="profileContent"></div>
             </section>
         </main>
     </div>
+
+    <style>@keyframes load { 0% { left: -50%; } 100% { left: 100%; } }</style>
 
     <script>
         const _URL = 'https://aelkiokxzzfnfvermrjy.supabase.co';
@@ -140,156 +153,149 @@
         
         let currentUser = null;
         let activeChatId = null;
+        let cachedUsername = "";
 
-        /* --- AUTH & FOOLPROOF LOGOUT --- */
+        /* --- FOOLPROOF CORE --- */
         async function init() {
-            const { data: { session }, error } = await _db.auth.getSession();
-            if (error || !session) return forceCleanRedirect();
+            const { data: { session } } = await _db.auth.getSession();
+            if (!session) return window.location.replace('login.html');
 
             currentUser = session.user;
+            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            cachedUsername = prof?.username || "user";
             
-            // Fade in app and hide shield
+            document.getElementById('my-avatar').innerText = cachedUsername[0].toUpperCase();
             document.getElementById('main-app').style.opacity = '1';
-            document.getElementById('auth-shield').style.display = 'none';
+            document.getElementById('auth-shield').style.opacity = '0';
+            setTimeout(() => document.getElementById('auth-shield').remove(), 500);
 
             loadPosts();
             setupRealtime();
             lucide.createIcons();
         }
 
-        async function handleLogout() {
-            currentUser = null;
-            activeChatId = null;
-            document.getElementById('main-app').style.opacity = '0';
-            await _db.auth.signOut();
-            localStorage.clear();
-            sessionStorage.clear();
-            forceCleanRedirect();
+        /* --- OPTIMISTIC UI POSTING --- */
+        async function createPost() {
+            const inp = document.getElementById('postInput');
+            const btn = document.getElementById('postBtn');
+            const content = inp.value.trim();
+            if(!content) return;
+
+            btn.disabled = true;
+            
+            // 1. Optimistic UI: Add to top of feed instantly
+            const tempId = Date.now();
+            renderSinglePost({
+                id: tempId,
+                username: cachedUsername,
+                content: content,
+                created_at: new Date().toISOString(),
+                isOptimistic: true
+            }, true);
+
+            inp.value = '';
+            
+            // 2. Real DB Call
+            const { error } = await _db.from('foreigner_posts').insert([{ 
+                user_id: currentUser.id, 
+                content: content, 
+                username: cachedUsername 
+            }]);
+
+            if (error) alert("Sync failed. Check connection.");
+            btn.disabled = false;
+            loadPosts(); 
         }
 
-        function forceCleanRedirect() {
-            window.location.replace('login.html');
+        /* --- RENDER LOGIC (WITH AUTO-LINKS) --- */
+        function formatText(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank" class="post-link">${url}</a>`);
         }
 
-        /* --- NAVIGATION --- */
+        function renderSinglePost(p, toTop = false) {
+            const container = document.getElementById('postsContainer');
+            const time = new Date(p.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const html = `
+                <div class="post-card" id="post-${p.id}" style="${p.isOptimistic ? 'opacity:0.6' : ''}">
+                    <div class="user-avatar">${p.username[0].toUpperCase()}</div>
+                    <div class="post-content">
+                        <div class="post-meta">
+                            <span class="username">@${p.username}</span>
+                            <span class="timestamp">· ${time}</span>
+                        </div>
+                        <div>${formatText(p.content)}</div>
+                    </div>
+                </div>`;
+            
+            if(toTop) container.insertAdjacentHTML('afterbegin', html);
+            else container.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function loadPosts() {
+            const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = '';
+            (posts || []).forEach(p => { if(!p.parent_id) renderSinglePost(p); });
+        }
+
+        /* --- MESSAGING & PROFILE --- */
         function switchTab(tab, el) {
             document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`${tab}-view`).style.display = 'block';
-            if(el) el.classList.add('active');
-
-            if(tab === 'messages') {
-                activeChatId = null; // Clear state
-                document.getElementById('chatWindow').innerHTML = '<p style="color:var(--text-dim); padding:20px;">Select a chat</p>';
-                document.getElementById('msgInputArea').style.display = 'none';
-                loadConvoList();
-            }
-            if(tab === 'home') loadPosts();
-            if(tab === 'profile') loadProfileData();
+            el.classList.add('active');
+            if(tab === 'messages') { activeChatId = null; loadConvoList(); }
         }
 
-        /* --- POSTS & THREADS --- */
-        async function loadPosts() {
-            const query = (document.getElementById('feedSearch').value || "").toLowerCase();
-            const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
-            if (!posts) return;
-
-            const filtered = posts.filter(p => 
-                p.content.toLowerCase().includes(query) || 
-                (p.username && p.username.toLowerCase().includes(query))
-            );
-
-            const container = document.getElementById('postsContainer');
-            const mainPosts = filtered.filter(p => !p.parent_id);
-            const allReplies = posts.filter(p => p.parent_id);
-
-            container.innerHTML = mainPosts.map(p => {
-                const thread = allReplies.filter(r => r.parent_id === p.id);
-                return `
-                <div style="border-bottom: 1px solid var(--border-dark);">
-                    <div class="post-card" style="border-bottom:none;">
-                        <div class="user-avatar" onclick="viewUserProfile('${p.user_id}')">${p.username ? p.username[0].toUpperCase() : 'C'}</div>
-                        <div style="flex:1">
-                            <span class="username-link" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
-                            <div style="margin-top:5px;">${p.content}</div>
-                            <button style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:0.8rem; margin-top:10px;" onclick="toggleReplyInput('${p.id}')">Reply</button>
-                        </div>
-                    </div>
-                    <div id="reply-box-${p.id}" style="display:none; padding:0 15px 15px 65px; gap:10px;">
-                        <input type="text" id="input-${p.id}" placeholder="Reply..." style="flex:1; background:#16181c; border:none; color:white; padding:8px; border-radius:20px; outline:none;">
-                        <button class="main-btn" style="width:auto; padding:5px 15px;" onclick="submitReply('${p.id}')">Send</button>
-                    </div>
-                    ${thread.length > 0 ? `<button style="background:none; border:none; color:var(--connect-blue); padding:0 0 10px 65px; cursor:pointer;" onclick="toggleThread('${p.id}')" id="btn-${p.id}">Show ${thread.length} replies</button>` : ''}
-                    <div id="thread-${p.id}" class="reply-thread" style="display:none;">
-                        ${thread.map(r => `<div style="padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.9rem;"><b class="username-link" onclick="viewUserProfile('${r.user_id}')">@${r.username}</b>: ${r.content}</div>`).join('')}
-                    </div>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        function toggleReplyInput(id) { const b = document.getElementById(`reply-box-${id}`); b.style.display = b.style.display === 'flex' ? 'none' : 'flex'; }
-        function toggleThread(id) { 
-            const t = document.getElementById(`thread-${id}`), b = document.getElementById(`btn-${id}`);
-            const isH = t.style.display === 'none'; t.style.display = isH ? 'block' : 'none';
-            b.innerText = isH ? 'Hide replies' : `Show replies`;
-        }
-
-        async function createPost() { 
-            const inp = document.getElementById('postInput'); if(!inp.value.trim()) return;
-            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: prof.username }]);
-            inp.value = ''; loadPosts(); 
-        }
-
-        async function submitReply(pid) { 
-            const inp = document.getElementById(`input-${pid}`); if(!inp.value.trim()) return;
-            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: prof.username, parent_id: pid }]);
-            inp.value = ''; loadPosts(); 
-        }
-
-        /* --- PROFILE & CHAT --- */
-        function viewUserProfile(uid) { switchTab('profile', document.getElementById('nav-profile')); loadProfileData(uid); }
-        async function loadProfileData(uid = null) {
-            const id = uid || currentUser.id;
-            const { data: p } = await _db.from('profiles').select('*').eq('id', id).single();
-            document.getElementById('profileContent').innerHTML = `
-                <div style="width:100px; height:100px; background:var(--connect-blue); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:bold;">${p.username[0].toUpperCase()}</div>
-                <h2>@${p.username}</h2>
-                ${id !== currentUser.id ? `<button class="main-btn" style="width:auto; padding:8px 25px;" onclick="startChat('${id}')">Message</button>` : ''}
-            `;
-        }
-
-        function startChat(uid) { switchTab('messages', document.getElementById('nav-messages')); setTimeout(() => openChat(uid, null), 100); }
         async function loadConvoList() {
             const { data: profs } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
-            document.getElementById('convoList').innerHTML = (profs || []).map(p => `<div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>`).join('');
+            document.getElementById('convoList').innerHTML = profs.map(p => `
+                <div class="convo-item" onclick="openChat('${p.id}', this)">
+                    <b style="font-size:1.1rem;">@${p.username}</b>
+                    <div style="color:gray; font-size:0.8rem;">Click to message</div>
+                </div>
+            `).join('');
         }
+
         async function openChat(uid, el) {
             activeChatId = uid;
             document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
-            if(el) el.classList.add('active');
+            el.classList.add('active');
             document.getElementById('msgInputArea').style.display = 'flex';
             loadMessages();
         }
+
         async function loadMessages() {
             if(!activeChatId) return;
-            const { data: msgs } = await _db.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true });
+            const { data: msgs } = await _db.from('messages').select('*')
+                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
+                .order('created_at', { ascending: true });
+            
             const win = document.getElementById('chatWindow');
             win.innerHTML = (msgs || []).map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
             win.scrollTop = win.scrollHeight;
         }
+
         async function sendDM() {
-            const inp = document.getElementById('dmInput'); if(!inp.value.trim()) return;
-            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value }]);
-            inp.value = ''; loadMessages();
+            const inp = document.getElementById('dmInput');
+            if(!inp.value.trim()) return;
+            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value.trim() }]);
+            inp.value = '';
+            loadMessages();
+        }
+
+        async function handleLogout() {
+            await _db.auth.signOut();
+            localStorage.clear();
+            window.location.replace('login.html');
         }
 
         function setupRealtime() {
-            _db.channel('sync').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
+            _db.channel('system').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
                 if (activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages();
-            }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
+            }).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
         }
 
         init();
