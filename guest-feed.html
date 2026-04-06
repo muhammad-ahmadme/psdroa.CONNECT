@@ -32,18 +32,20 @@
         .post-card { border-bottom: 1px solid var(--border-gray); padding: 20px; transition: 0.2s; display: flex; gap: 12px; }
         .guest-badge { background: rgba(29, 155, 240, 0.1); color: var(--twitter-blue); padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; border: 1px solid var(--twitter-blue); margin-left: 8px; }
         
-        /* Messaging Layout */
-        .dm-layout { display: flex; height: 70vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; background: #000; }
+        /* Messaging Layout & Maintenance */
+        .dm-layout { display: flex; height: 70vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; background: #000; position: relative; }
+        .maintenance-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 100; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            text-align: center; padding: 20px; backdrop-filter: blur(6px);
+        }
+        
         .dm-sidebar { width: 35%; border-right: 1px solid var(--border-gray); background: rgba(255,255,255,0.02); overflow-y: auto; }
         .dm-main { flex: 1; display: flex; flex-direction: column; background: #000; }
-        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-gray); cursor: pointer; transition: 0.2s; }
-        .convo-item.active { background: rgba(29, 155, 240, 0.1); border-left: 4px solid var(--twitter-blue); }
         
-        .chat-bubble { max-width: 75%; padding: 12px 16px; border-radius: 20px; font-size: 0.95rem; margin-bottom: 8px; line-height: 1.4; }
-        .sent { align-self: flex-end; background: var(--twitter-blue); border-bottom-right-radius: 4px; }
-        .received { align-self: flex-start; background: #2f3336; border-bottom-left-radius: 4px; }
-
         .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--twitter-blue); color: white; }
+        .main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
@@ -78,14 +80,19 @@
             <section id="messages-view" class="view-section" style="display:none">
                 <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray);">Guest Messages</div>
                 <div class="dm-layout">
-                    <div class="dm-sidebar" id="activeConvos"></div>
-                    <div class="dm-main">
-                        <div id="chatWindow" style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column;">
-                            <p id="chatPlaceholder" style="color:var(--text-dim); text-align:center; margin-top:100px;">Choose a guest to message</p>
+                    <div class="maintenance-overlay">
+                        <i data-lucide="wrench" style="width: 48px; height: 48px; color: var(--twitter-blue); margin-bottom: 15px;"></i>
+                        <h2 style="margin: 0 0 10px 0;">Guest DMs Offline</h2>
+                        <p style="color: var(--text-dim); max-width: 320px;">Guest-to-guest messaging is currently disabled for maintenance.</p>
+                    </div>
+                    <div class="dm-sidebar" style="opacity: 0.1;"></div>
+                    <div class="dm-main" style="opacity: 0.1;">
+                        <div style="flex:1; padding:20px; display:flex; align-items:center; justify-content:center;">
+                            <p style="color:var(--text-dim);">Messaging disabled</p>
                         </div>
                         <div style="padding:15px; border-top:1px solid var(--border-gray); display:flex; gap:12px;">
-                            <input type="text" id="dmInput" placeholder="Start a message" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px; outline:none;">
-                            <button class="main-btn" onclick="sendDM()" style="width: auto; padding: 0 20px;">Send</button>
+                            <input type="text" disabled placeholder="Start a message" style="flex:1; background: #16181c; border: none; padding: 12px; border-radius: 25px; cursor: not-allowed;">
+                            <button class="main-btn" disabled style="width: auto; padding: 0 20px;">Send</button>
                         </div>
                     </div>
                 </div>
@@ -107,15 +114,13 @@
     </div>
 
     <script>
-        // 1. CONFIG
         const _URL = 'https://aelkiokxzzfnfvermrjy.supabase.co';
         const _KEY = 'sb_publishable_r8ncudJ8R49sXNlsE3OKvA_D4Ak_CHC';
         const _db = supabase.createClient(_URL, _KEY);
 
         let currentUser = null;
-        let activeChatId = null;
 
-        // 2. GLOBAL FUNCTIONS
+        // GLOBAL FUNCTIONS
         async function handleLogout() { 
             await _db.auth.signOut(); 
             window.location.href = 'login-guest.html'; 
@@ -128,7 +133,6 @@
             if(el) el.classList.add('active');
             
             if(tab === 'profile') loadProfileData();
-            if(tab === 'messages') loadConversations();
         }
 
         async function loadPosts() {
@@ -155,42 +159,6 @@
             loadPosts();
         }
 
-        async function loadConversations() {
-            const { data: profiles } = await _db.from('profiles').select('*').neq('id', currentUser.id);
-            document.getElementById('activeConvos').innerHTML = (profiles || []).map(p => `
-                <div class="convo-item" onclick="openChat('${p.id}', this)">@${p.username}</div>
-            `).join('');
-        }
-
-        async function openChat(userId, el) {
-            activeChatId = userId;
-            document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('chatPlaceholder').style.display = 'none';
-            loadMessages();
-        }
-
-        async function loadMessages() {
-            if (!activeChatId) return;
-            const { data: msgs } = await _db.from('messages')
-                .select('*')
-                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
-                .order('created_at', { ascending: true });
-
-            const win = document.getElementById('chatWindow');
-            win.innerHTML = (msgs || []).map(m => `<div class="chat-bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
-            win.scrollTop = win.scrollHeight;
-        }
-
-        async function sendDM() {
-            const input = document.getElementById('dmInput');
-            const content = input.value.trim();
-            if (!content || !activeChatId) return;
-            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content }]);
-            input.value = '';
-            loadMessages();
-        }
-
         async function loadProfileData() {
             const { data: profile } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
             const { count } = await _db.from('foreigner_posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
@@ -203,13 +171,11 @@
         }
 
         function setupRealtime() {
-            _db.channel('guest_updates').on('postgres_changes', { event: '*', schema: 'public' }, () => {
+            _db.channel('guest_updates').on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => {
                 loadPosts();
-                if(activeChatId) loadMessages();
             }).subscribe();
         }
 
-        // 3. INIT
         async function init() {
             lucide.createIcons();
             const { data: { user } } = await _db.auth.getUser();
