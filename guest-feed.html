@@ -28,24 +28,24 @@
         .nav-item:hover { background: var(--bg-hover); }
         .nav-item.active { font-weight: bold; color: var(--twitter-blue); }
 
-        /* Guest Post Styling */
-        .post-card { border-bottom: 1px solid var(--border-gray); padding: 20px; transition: 0.2s; display: flex; gap: 12px; }
-        .guest-badge { background: rgba(29, 155, 240, 0.1); color: var(--twitter-blue); padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; border: 1px solid var(--twitter-blue); margin-left: 8px; }
-        
-        /* Messaging Layout & Maintenance */
-        .dm-layout { display: flex; height: 70vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; background: #000; position: relative; }
-        .maintenance-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); z-index: 100; display: flex; 
-            flex-direction: column; align-items: center; justify-content: center; 
-            text-align: center; padding: 20px; backdrop-filter: blur(6px);
-        }
-        
+        /* Messaging UI */
+        .dm-layout { display: flex; height: 75vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; background: #000; }
         .dm-sidebar { width: 35%; border-right: 1px solid var(--border-gray); background: rgba(255,255,255,0.02); overflow-y: auto; }
         .dm-main { flex: 1; display: flex; flex-direction: column; background: #000; }
         
-        .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--twitter-blue); color: white; }
-        .main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-gray); cursor: pointer; transition: 0.2s; }
+        .convo-item:hover { background: var(--bg-hover); }
+        .convo-item.active { background: rgba(29, 155, 240, 0.1); border-left: 4px solid var(--twitter-blue); }
+
+        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Bubble Separation */
+        .bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .sent { align-self: flex-end; background: var(--twitter-blue); color: white; border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: #2f3336; color: white; border-bottom-left-radius: 2px; }
+
+        .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--twitter-blue); color: white; transition: 0.2s; }
+        .main-btn:hover { opacity: 0.9; }
 
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
@@ -67,7 +67,7 @@
 
         <main class="feed-content">
             <section id="home-view" class="view-section">
-                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray); sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);">Guest Feed</div>
+                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray);">Guest Feed</div>
                 <div style="padding: 20px; border-bottom: 1px solid var(--border-gray);">
                     <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.2rem; resize:none; outline:none;" placeholder="What's happening in the circle?"></textarea>
                     <div style="display: flex; justify-content: flex-end; padding-top: 15px;">
@@ -80,19 +80,14 @@
             <section id="messages-view" class="view-section" style="display:none">
                 <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray);">Guest Messages</div>
                 <div class="dm-layout">
-                    <div class="maintenance-overlay">
-                        <i data-lucide="wrench" style="width: 48px; height: 48px; color: var(--twitter-blue); margin-bottom: 15px;"></i>
-                        <h2 style="margin: 0 0 10px 0;">Guest DMs Offline</h2>
-                        <p style="color: var(--text-dim); max-width: 320px;">Guest-to-guest messaging is currently disabled for maintenance.</p>
-                    </div>
-                    <div class="dm-sidebar" style="opacity: 0.1;"></div>
-                    <div class="dm-main" style="opacity: 0.1;">
-                        <div style="flex:1; padding:20px; display:flex; align-items:center; justify-content:center;">
-                            <p style="color:var(--text-dim);">Messaging disabled</p>
+                    <div class="dm-sidebar" id="convoList"></div>
+                    <div class="dm-main">
+                        <div id="chatWindow">
+                            <p style="color:var(--text-dim); text-align:center; margin-top:100px;">Select a conversation to start chatting.</p>
                         </div>
-                        <div style="padding:15px; border-top:1px solid var(--border-gray); display:flex; gap:12px;">
-                            <input type="text" disabled placeholder="Start a message" style="flex:1; background: #16181c; border: none; padding: 12px; border-radius: 25px; cursor: not-allowed;">
-                            <button class="main-btn" disabled style="width: auto; padding: 0 20px;">Send</button>
+                        <div id="msgInputArea" style="padding:15px; border-top:1px solid var(--border-gray); display:none; gap:12px;">
+                            <input type="text" id="dmInput" placeholder="Start a message" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px; outline:none;">
+                            <button class="main-btn" onclick="sendDM()" style="width: auto; padding: 0 20px;">Send</button>
                         </div>
                     </div>
                 </div>
@@ -100,15 +95,7 @@
 
             <section id="profile-view" class="view-section" style="display:none">
                 <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray);">Profile</div>
-                <div style="padding: 40px 20px; text-align: center;">
-                    <div id="profileInitial" style="width:100px; height:100px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:900;">G</div>
-                    <h2 id="profileUsername">@guest</h2>
-                    <p id="profileEmail" style="color:var(--text-dim);"></p>
-                    <div style="display:flex; justify-content:center; gap:40px; margin-top: 30px; border-top:1px solid var(--border-gray); padding-top:20px;">
-                        <div><div id="postCount" style="font-size: 1.2rem; font-weight:bold;">0</div><div style="font-size:0.8rem; color:var(--text-dim);">Posts</div></div>
-                        <div><div style="font-size: 1.2rem; font-weight:bold; color:var(--twitter-blue);">Guest</div><div style="font-size:0.8rem; color:var(--text-dim);">Account</div></div>
-                    </div>
-                </div>
+                <div id="profileContent" style="padding: 40px 20px; text-align: center;"></div>
             </section>
         </main>
     </div>
@@ -119,12 +106,9 @@
         const _db = supabase.createClient(_URL, _KEY);
 
         let currentUser = null;
+        let activeChatId = null;
 
-        // GLOBAL FUNCTIONS
-        async function handleLogout() { 
-            await _db.auth.signOut(); 
-            window.location.href = 'login-guest.html'; 
-        }
+        async function handleLogout() { await _db.auth.signOut(); window.location.href = 'login-guest.html'; }
 
         function switchTab(tab, el) {
             document.querySelectorAll('.view-section').forEach(s => s.style.display = 'none');
@@ -132,46 +116,96 @@
             document.getElementById(`${tab}-view`).style.display = 'block';
             if(el) el.classList.add('active');
             
+            if(tab === 'messages') loadConvoList();
             if(tab === 'profile') loadProfileData();
         }
 
+        // --- MESSAGING LOGIC ---
+        async function loadConvoList() {
+            const { data: profiles } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
+            const container = document.getElementById('convoList');
+            container.innerHTML = (profiles || []).map(p => `
+                <div class="convo-item" onclick="openChat('${p.id}', this)">
+                    <div style="font-weight:bold;">@${p.username}</div>
+                </div>
+            `).join('');
+        }
+
+        async function openChat(userId, el) {
+            activeChatId = userId;
+            document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            
+            document.getElementById('msgInputArea').style.display = 'flex';
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            if (!activeChatId) return;
+            const { data: msgs } = await _db.from('messages').select('*')
+                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
+                .order('created_at', { ascending: true });
+
+            const win = document.getElementById('chatWindow');
+            win.innerHTML = (msgs || []).map(m => `
+                <div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>
+            `).join('');
+            win.scrollTop = win.scrollHeight;
+        }
+
+        async function sendDM() {
+            const input = document.getElementById('dmInput');
+            const content = input.value.trim();
+            if (!content || !activeChatId) return;
+
+            const { error } = await _db.from('messages').insert([{
+                sender_id: currentUser.id,
+                receiver_id: activeChatId,
+                content
+            }]);
+
+            if (!error) { input.value = ''; loadMessages(); }
+        }
+
+        // --- FEED LOGIC ---
         async function loadPosts() {
             const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
-            const container = document.getElementById('postsContainer');
-            container.innerHTML = (posts || []).map(p => `
+            document.getElementById('postsContainer').innerHTML = (posts || []).map(p => `
                 <div class="post-card">
                     <div style="width:40px; height:40px; border-radius:50%; background:#333; display:flex; align-items:center; justify-content:center; font-weight:bold;">${p.username ? p.username[0].toUpperCase() : 'G'}</div>
                     <div style="flex:1">
                         <div style="font-weight: bold; margin-bottom: 5px;">@${p.username} <span class="guest-badge">Guest</span></div>
-                        <div style="color: white; line-height: 1.5;">${p.content}</div>
+                        <div style="color: white;">${p.content}</div>
                     </div>
                 </div>`).join('');
         }
 
         async function createPost() {
             const input = document.getElementById('postInput');
-            const content = input.value.trim();
-            if(!content || !currentUser) return;
-
-            const { data: profile } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content, username: profile.username }]);
+            if(!input.value.trim()) return;
+            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: input.value, username: prof.username }]);
             input.value = '';
             loadPosts();
         }
 
         async function loadProfileData() {
-            const { data: profile } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
+            const { data: prof } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
             const { count } = await _db.from('foreigner_posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
-            if(profile) {
-                document.getElementById('profileUsername').innerText = `@${profile.username}`;
-                document.getElementById('profileEmail').innerText = currentUser.email;
-                document.getElementById('profileInitial').innerText = profile.username[0].toUpperCase();
-                document.getElementById('postCount').innerText = count || 0;
-            }
+            document.getElementById('profileContent').innerHTML = `
+                <div style="width:100px; height:100px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:900;">${prof.username[0].toUpperCase()}</div>
+                <h2>@${prof.username}</h2>
+                <p style="color:var(--text-dim);">${currentUser.email}</p>
+                <div style="display:flex; justify-content:center; gap:40px; margin-top:30px; border-top:1px solid var(--border-gray); padding-top:20px;">
+                    <div><div style="font-size:1.2rem; font-weight:bold;">${count || 0}</div><div style="font-size:0.8rem; color:var(--text-dim);">Posts</div></div>
+                    <div><div style="font-size:1.2rem; font-weight:bold; color:var(--twitter-blue);">Guest</div><div style="font-size:0.8rem; color:var(--text-dim);">Account</div></div>
+                </div>`;
         }
 
         function setupRealtime() {
-            _db.channel('guest_updates').on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => {
+            _db.channel('updates').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
+                if (activeChatId && (payload.new.sender_id === activeChatId || payload.new.receiver_id === activeChatId)) loadMessages();
+            }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => {
                 loadPosts();
             }).subscribe();
         }
