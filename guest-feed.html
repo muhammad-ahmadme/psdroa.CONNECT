@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSDROA.connect | Global Network</title>
+    <title>PSDROA.connect | Network Edition</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -13,7 +13,6 @@
             --text-main: #eff3f4;
             --text-dim: #71767b;
             --bg-black: #000;
-            --bg-glass: rgba(0, 0, 0, 0.85);
         }
 
         #auth-shield {
@@ -42,43 +41,32 @@
         .nav-item:hover { background: rgba(255,255,255,0.1); }
         .nav-item.active { font-weight: 800; color: var(--connect-blue); }
 
-        /* Feed & Content */
+        /* Feed */
         .feed-content { flex: 1; max-width: 600px; border-right: 1px solid var(--border-dark); min-height: 100vh; }
         
-        .post-card { 
-            padding: 16px; display: flex; gap: 12px; border-bottom: 1px solid var(--border-dark); 
-        }
+        .post-card { padding: 16px; display: flex; gap: 12px; border-bottom: 1px solid var(--border-dark); transition: 0.2s; }
+        .post-card:hover { background: rgba(255,255,255,0.02); }
 
         .user-avatar { 
             width: 48px; height: 48px; border-radius: 50%; background: #333; 
             display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;
         }
 
-        .post-content { flex: 1; font-size: 15px; }
-        .post-meta { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
-        .username { font-weight: 700; cursor: pointer; }
+        .username { font-weight: 700; cursor: pointer; color: white; text-decoration: none; }
         .username:hover { text-decoration: underline; }
-
-        /* Media Handling */
-        .media-container { margin-top: 12px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-dark); }
-        .media-container img, .media-container video { width: 100%; display: block; max-height: 500px; object-fit: cover; }
 
         /* Buttons */
         .main-btn { 
             background: var(--connect-blue); color: white; border: none; border-radius: 30px; 
-            padding: 10px 24px; font-weight: 700; cursor: pointer;
+            padding: 10px 24px; font-weight: 700; cursor: pointer; transition: 0.2s;
         }
-        .main-btn:disabled { opacity: 0.5; }
+        .main-btn.alt { background: white; color: black; }
+        .main-btn.outline { background: transparent; border: 1px solid var(--border-dark); color: white; }
 
-        /* DM UI */
-        .dm-layout { display: flex; height: 90vh; border: 1px solid var(--border-dark); border-radius: 16px; margin: 10px; overflow: hidden; }
-        .dm-sidebar { width: 300px; border-right: 1px solid var(--border-dark); overflow-y: auto; }
-        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-dark); cursor: pointer; }
-        .convo-item.active { background: rgba(29, 155, 240, 0.1); }
-        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { padding: 10px 16px; border-radius: 20px; max-width: 70%; }
-        .sent { align-self: flex-end; background: var(--connect-blue); }
-        .received { align-self: flex-start; background: #2f3336; }
+        /* Profile Special UI */
+        .profile-banner { height: 150px; background: #222; width: 100%; }
+        .profile-stats { display: flex; gap: 20px; margin-top: 15px; color: var(--text-dim); }
+        .stat-num { color: white; font-weight: 800; }
 
         @media (max-width: 1000px) { .sidebar { width: 80px; } .sidebar span { display: none; } }
     </style>
@@ -87,57 +75,27 @@
 
     <div id="auth-shield">
         <div style="font-weight: 900; font-size: 2.5rem;">PSDROA</div>
-        <div style="color: var(--text-dim); margin-top: 10px;">Verifying Secure Token...</div>
+        <div style="color: var(--text-dim); margin-top: 10px;">Building Network Graph...</div>
     </div>
 
     <div class="app-container" id="main-app">
         <aside class="sidebar">
             <div style="font-weight: 900; font-size: 1.8rem; padding: 15px;">P.</div>
             <nav style="flex: 1;">
-                <div class="nav-item active" id="btn-home" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
-                <div class="nav-item" id="btn-messages" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
-                <div class="nav-item" id="btn-profile" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
+                <div class="nav-item active" id="nav-home" onclick="switchTab('home', this)"><i data-lucide="home"></i> <span>Home</span></div>
+                <div class="nav-item" id="nav-messages" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
+                <div class="nav-item" id="nav-profile" onclick="switchTab('profile', this)"><i data-lucide="user"></i> <span>Profile</span></div>
             </nav>
-            <button class="main-btn" onclick="handleLogout()" style="background:transparent; border:1px solid var(--border-dark); margin-bottom: 20px;">Logout</button>
+            <button class="main-btn outline" onclick="handleLogout()" style="margin-bottom: 20px;">Logout</button>
         </aside>
 
         <main class="feed-content">
             <section id="home-view" class="view-section">
-                <div style="padding:15px; font-weight:800; font-size:1.2rem; border-bottom:1px solid var(--border-dark);">Home</div>
-                <div style="padding: 16px; border-bottom: 1px solid var(--border-dark);">
-                    <div style="display: flex; gap: 12px;">
-                        <div class="user-avatar" id="nav-avatar">?</div>
-                        <div style="flex: 1;">
-                            <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size:1.2rem; outline:none; resize:none;" placeholder="What is happening?!"></textarea>
-                            <div id="mediaPreview" style="display:none; margin-top:10px; position:relative;">
-                                <img id="pImg" src="" style="width:100%; border-radius:15px;">
-                                <button onclick="clearMedia()" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer;">&times;</button>
-                            </div>
-                            <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px; border-top:1px solid var(--border-dark); padding-top:10px;">
-                                <div style="color:var(--connect-blue); cursor:pointer;" onclick="document.getElementById('mInp').click()">
-                                    <i data-lucide="image"></i>
-                                    <input type="file" id="mInp" hidden accept="image/*" onchange="handlePreview()">
-                                </div>
-                                <button class="main-btn" id="pBtn" onclick="createPost()">Post</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div style="padding:15px; font-weight:800; font-size:1.2rem; border-bottom:1px solid var(--border-dark); background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); position: sticky; top:0; z-index: 10;">Home</div>
                 <div id="postsContainer"></div>
             </section>
 
-            <section id="messages-view" class="view-section" style="display:none">
-                <div class="dm-layout">
-                    <div class="dm-sidebar" id="convoList"></div>
-                    <div style="flex:1; display:flex; flex-direction:column;">
-                        <div id="chatWindow"></div>
-                        <div id="msgInpBox" style="padding:15px; display:none; gap:10px;">
-                            <input type="text" id="dmInp" style="flex:1; background:#202327; border:none; color:white; padding:12px; border-radius:20px;" placeholder="Start a message">
-                            <button class="main-btn" onclick="sendDM()">Send</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <section id="messages-view" class="view-section" style="display:none"></section>
 
             <section id="profile-view" class="view-section" style="display:none">
                 <div id="profileContent"></div>
@@ -151,7 +109,6 @@
         const _db = supabase.createClient(_URL, _KEY);
         
         let currentUser = null;
-        let activeChatId = null;
         let myUser = "";
 
         async function init() {
@@ -162,7 +119,6 @@
             const { data: p } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
             myUser = p?.username || "user";
             
-            document.getElementById('nav-avatar').innerText = myUser[0].toUpperCase();
             document.getElementById('main-app').style.opacity = '1';
             document.getElementById('auth-shield').remove();
 
@@ -171,50 +127,7 @@
             lucide.createIcons();
         }
 
-        /* --- POSTING & MEDIA --- */
-        function handlePreview() {
-            const file = document.getElementById('mInp').files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('pImg').src = e.target.result;
-                    document.getElementById('mediaPreview').style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function clearMedia() {
-            document.getElementById('mInp').value = "";
-            document.getElementById('mediaPreview').style.display = 'none';
-        }
-
-        async function createPost() {
-            const txt = document.getElementById('postInput').value.trim();
-            const file = document.getElementById('mInp').files[0];
-            const btn = document.getElementById('pBtn');
-            if(!txt && !file) return;
-
-            btn.disabled = true;
-            let mUrl = null;
-
-            if(file) {
-                const fName = `${Date.now()}-${file.name}`;
-                const { data } = await _db.storage.from('media').upload(fName, file);
-                if(data) mUrl = _db.storage.from('media').getPublicUrl(fName).data.publicUrl;
-            }
-
-            await _db.from('foreigner_posts').insert([{ 
-                user_id: currentUser.id, username: myUser, content: txt, media_url: mUrl 
-            }]);
-
-            document.getElementById('postInput').value = "";
-            clearMedia();
-            btn.disabled = false;
-            loadPosts();
-        }
-
-        /* --- RENDERING --- */
+        /* --- FEED --- */
         async function loadPosts() {
             const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
             const cont = document.getElementById('postsContainer');
@@ -227,87 +140,90 @@
         function renderPost(p, target) {
             const html = `
                 <div class="post-card">
-                    <div class="user-avatar">${p.username[0].toUpperCase()}</div>
-                    <div class="post-content">
-                        <div class="post-meta">
-                            <span class="username" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
-                        </div>
+                    <div class="user-avatar" onclick="viewUserProfile('${p.user_id}')" style="cursor:pointer">${p.username[0].toUpperCase()}</div>
+                    <div style="flex:1">
+                        <span class="username" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
                         <div style="margin-top:4px;">${p.content}</div>
-                        ${p.media_url ? `<div class="media-container"><img src="${p.media_url}"></div>` : ''}
+                        ${p.media_url ? `<div style="margin-top:12px; border-radius:15px; overflow:hidden; border:1px solid var(--border-dark);"><img src="${p.media_url}" style="width:100%;"></div>` : ''}
                     </div>
                 </div>`;
             target.insertAdjacentHTML('beforeend', html);
         }
 
-        /* --- PRO PROFILE --- */
-        function viewUserProfile(uid) { switchTab('profile', document.getElementById('btn-profile')); loadProfile(uid); }
-        async function loadProfile(uid) {
-            const targetId = uid || currentUser.id;
-            const { data: p } = await _db.from('profiles').select('*').eq('id', targetId).single();
-            const { count: posts } = await _db.from('foreigner_posts').select('*', { count: 'exact', head:true }).eq('user_id', targetId);
+        /* --- REFINED FOLLOW SYSTEM --- */
+        function viewUserProfile(uid) { switchTab('profile', document.getElementById('nav-profile')); loadProfile(uid); }
+
+        async function loadProfile(targetUid) {
+            const id = targetUid || currentUser.id;
+            const isMe = id === currentUser.id;
+
+            // Fetch Data
+            const { data: profile } = await _db.from('profiles').select('*').eq('id', id).single();
+            const { count: posts } = await _db.from('foreigner_posts').select('*', { count: 'exact', head: true }).eq('user_id', id);
+            const { count: followers } = await _db.from('followers').select('*', { count: 'exact', head: true }).eq('following_id', id);
+            const { count: following } = await _db.from('followers').select('*', { count: 'exact', head: true }).eq('follower_id', id);
             
+            // Check if I follow them
+            let amIFollowing = false;
+            if(!isMe) {
+                const { data: check } = await _db.from('followers').select('*').eq('follower_id', currentUser.id).eq('following_id', id).single();
+                amIFollowing = !!check;
+            }
+
             document.getElementById('profileContent').innerHTML = `
-                <div style="height:150px; background:#222;"></div>
+                <div class="profile-banner"></div>
                 <div style="padding:15px; position:relative;">
-                    <div style="width:100px; height:100px; border-radius:50%; background:var(--connect-blue); border:4px solid black; margin-top:-60px; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:bold;">
-                        ${p.username[0].toUpperCase()}
+                    <div style="width:120px; height:120px; border-radius:50%; background:var(--connect-blue); border:4px solid black; margin-top:-70px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:bold; overflow:hidden;">
+                        ${profile.username[0].toUpperCase()}
                     </div>
-                    <h2 style="margin:10px 0 0 0;">${p.username}</h2>
-                    <div style="color:gray;">@${p.username.toLowerCase()}</div>
-                    <div style="margin-top:15px; display:flex; gap:20px; color:gray;">
-                        <span><b>${posts}</b> Posts</span>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:10px;">
+                        <div>
+                            <h2 style="margin:0;">${profile.username}</h2>
+                            <div style="color:var(--text-dim);">@${profile.username.toLowerCase()}</div>
+                        </div>
+                        ${!isMe ? `
+                            <button class="main-btn ${amIFollowing ? 'outline' : 'alt'}" onclick="toggleFollow('${id}', ${amIFollowing})">
+                                ${amIFollowing ? 'Following' : 'Follow'}
+                            </button>
+                        ` : ''}
                     </div>
-                    ${targetId !== currentUser.id ? `<button class="main-btn" style="margin-top:15px;" onclick="startChat('${targetId}')">Message</button>` : ''}
+
+                    <div class="profile-stats">
+                        <span><span class="stat-num">${posts}</span> Posts</span>
+                        <span><span class="stat-num">${following}</span> Following</span>
+                        <span><span class="stat-num">${followers}</span> Followers</span>
+                    </div>
                 </div>
-                <div id="uPosts" style="border-top:1px solid var(--border-dark); margin-top:20px;"></div>
+                <div id="userPosts" style="border-top:1px solid var(--border-dark); margin-top:20px;"></div>
             `;
             
-            const { data: uposts } = await _db.from('foreigner_posts').select('*').eq('user_id', targetId).order('created_at', { ascending:false });
-            (uposts || []).forEach(up => renderPost(up, document.getElementById('uPosts')));
+            const { data: uposts } = await _db.from('foreigner_posts').select('*').eq('user_id', id).order('created_at', { ascending: false });
+            (uposts || []).forEach(up => renderPost(up, document.getElementById('userPosts')));
         }
 
-        /* --- MESSAGING --- */
-        function startChat(uid) { switchTab('messages', document.getElementById('btn-messages')); setTimeout(() => openChat(uid), 200); }
-        async function loadConvoList() {
-            const { data: profs } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
-            document.getElementById('convoList').innerHTML = profs.map(p => `<div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>`).join('');
-        }
-        async function openChat(uid, el) {
-            activeChatId = uid;
-            document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
-            if(el) el.classList.add('active');
-            document.getElementById('msgInpBox').style.display = 'flex';
-            loadMessages();
-        }
-        async function loadMessages() {
-            if(!activeChatId) return;
-            const { data: msgs } = await _db.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending:true });
-            const win = document.getElementById('chatWindow');
-            win.innerHTML = msgs.map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join('');
-            win.scrollTop = win.scrollHeight;
-        }
-        async function sendDM() {
-            const txt = document.getElementById('dmInp').value.trim(); if(!txt) return;
-            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: txt }]);
-            document.getElementById('dmInp').value = ""; loadMessages();
+        async function toggleFollow(targetId, isFollowing) {
+            if(isFollowing) {
+                await _db.from('followers').delete().eq('follower_id', currentUser.id).eq('following_id', targetId);
+            } else {
+                await _db.from('followers').insert({ follower_id: currentUser.id, following_id: targetId });
+            }
+            loadProfile(targetId); // Refresh UI
         }
 
-        /* --- UTIL --- */
+        /* --- UTILS --- */
         function switchTab(tab, el) {
             document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`${tab}-view`).style.display = 'block';
             el.classList.add('active');
-            if(tab === 'messages') loadConvoList();
             if(tab === 'profile') loadProfile(currentUser.id);
         }
 
         async function handleLogout() { await _db.auth.signOut(); localStorage.clear(); window.location.replace('login.html'); }
         
         function setupRealtime() {
-            _db.channel('room1').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
-                if(activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages();
-            }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
+            _db.channel('global').on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
         }
 
         init();
