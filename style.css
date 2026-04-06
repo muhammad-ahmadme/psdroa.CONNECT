@@ -1,5 +1,5 @@
 /* PSDROA CONNECT - THE OMNI-CSS SYSTEM 
-    Fix: Restored Global Form Selectors
+   Update: Added Threading & Reply System
 */
 
 :root {
@@ -33,7 +33,7 @@ body {
     overflow-x: hidden;
 }
 
-/* --- 2. THE RESTORED FORMS (Fix) --- */
+/* --- 2. FORMS & INPUTS --- */
 input, textarea, select {
     width: 100%;
     padding: 16px;
@@ -44,7 +44,7 @@ input, textarea, select {
     margin-bottom: 16px;
     font-size: 1.1rem;
     transition: border var(--transition-smooth), box-shadow var(--transition-smooth);
-    display: block; /* Ensures they don't vanish */
+    display: block;
 }
 
 input:focus, textarea:focus {
@@ -58,39 +58,7 @@ textarea {
     min-height: 120px;
 }
 
-/* Label Styling */
-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-dim);
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-/* --- 3. AUTHENTICATION & CENTERING --- */
-.auth-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.auth-box {
-    width: 100%;
-    max-width: 440px;
-    padding: 20px;
-}
-
-.auth-box h1 {
-    font-size: clamp(2.5rem, 10vw, 4rem);
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: 30px;
-    letter-spacing: -3px;
-}
-
-/* --- 4. THE LAYOUT ENGINE --- */
+/* --- 3. THE LAYOUT ENGINE --- */
 .app-container {
     display: flex;
     max-width: 1250px;
@@ -114,19 +82,91 @@ label {
     min-height: 100vh;
 }
 
-.feed-header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+/* --- 4. COMPONENT UI --- */
+.post-card {
     padding: 16px;
     border-bottom: 1px solid var(--border-gray);
-    font-weight: 800;
+    transition: background 0.2s;
+    display: flex;
+    gap: 12px;
 }
 
-/* --- 5. COMPONENT UI --- */
+.post-card:hover { background: rgba(255, 255, 255, 0.02); }
+
+/* --- 5. REPLY & THREADING SYSTEM (New) --- */
+
+/* Indentation for replies */
+.reply-thread-container {
+    margin-left: 52px; /* Aligns with the end of the parent avatar */
+    border-left: 2px solid var(--border-gray);
+}
+
+.reply-card {
+    padding: 12px 16px;
+    border-bottom: none; /* Replies shouldn't have full width borders */
+    font-size: 0.95rem;
+}
+
+/* The action button for replying */
+.action-icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    transition: color 0.2s;
+}
+
+.action-icon-btn:hover {
+    color: var(--twitter-blue);
+}
+
+/* Inline Reply Composer */
+.inline-reply-box {
+    display: none; /* Controlled via JS toggle */
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-gray);
+    background: rgba(29, 155, 240, 0.03);
+    gap: 10px;
+}
+
+.inline-reply-box input {
+    margin-bottom: 0;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 1rem;
+}
+
+/* Utility for the 'Post' button in small contexts */
+.mini-post-btn {
+    width: auto;
+    padding: 6px 16px;
+    font-size: 0.9rem;
+}
+
+/* --- 6. BUTTONS & NAV --- */
+.main-btn {
+    width: 100%;
+    padding: 15px;
+    background: var(--text-main);
+    color: var(--bg-black);
+    border: none;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.btn-blue {
+    background: var(--twitter-blue);
+    color: white;
+}
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -141,33 +181,9 @@ label {
 }
 
 .nav-item:hover { background: var(--bg-hover); }
-.nav-item.active { font-weight: 800; }
+.nav-item.active { font-weight: 800; color: var(--twitter-blue); }
 
-.main-btn {
-    width: 100%;
-    padding: 15px;
-    background: var(--text-main);
-    color: var(--bg-black);
-    border: none;
-    border-radius: 999px;
-    font-weight: 800;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-}
-
-.main-btn:active { transform: scale(0.97); }
-.main-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.post-card {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-gray);
-    transition: background 0.2s;
-}
-
-.post-card:hover { background: rgba(255, 255, 255, 0.02); }
-
-/* --- 6. MOBILE & APP FIXES --- */
+/* --- 7. MOBILE FIXES --- */
 @media (max-width: 1000px) {
     .sidebar { width: 88px; }
     .nav-item span { display: none; }
@@ -176,27 +192,5 @@ label {
 @media (max-width: 600px) {
     .sidebar { display: none; }
     .feed-content { width: 100%; border-right: none; }
-    
-    /* Mobile Tab Bar (Add this to your HTML if needed) */
-    .mobile-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background: var(--bg-black);
-        border-top: 1px solid var(--border-gray);
-        justify-content: space-around;
-        padding: 15px 0;
-        z-index: 1000;
-    }
-}
-
-/* Error States */
-.error-banner {
-    background: var(--error-red);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-weight: 600;
+    .reply-thread-container { margin-left: 20px; } /* Less indentation on mobile */
 }
