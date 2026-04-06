@@ -10,6 +10,8 @@
 <body>
 
     <header style="position: absolute; top: 0; width: 100%; padding: 20px 40px; display: flex; justify-content: flex-end; align-items: center; z-index: 100; gap: 15px;">
+        <a href="signup-guest.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px; color: #1d9bf0; font-weight: bold; border: 1px solid #1d9bf0; border-radius: 20px;">Guest Access</a>
+        
         <a href="rules.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px; color: var(--text-dim); border-color: transparent;">Rules</a>
         <div style="width: 1px; height: 20px; background: var(--border-gray);"></div>
         <a href="login.html" class="secondary-btn" style="text-decoration: none; padding: 8px 20px;">Sign in</a>
@@ -63,7 +65,6 @@
                 return;
             }
 
-            // Logic: Create the user in Auth instantly
             const { data, error } = await _db.auth.signUp({
                 email, 
                 password, 
@@ -76,12 +77,10 @@
             } else {
                 successBox.style.display = 'block';
                 
-                // Clear the form
                 document.getElementById('regEmail').value = '';
                 document.getElementById('regPass').value = '';
                 document.getElementById('regUsername').value = '';
                 
-                // Auto-redirect to login so they can try after you approve them
                 setTimeout(() => { window.location.href = 'login.html'; }, 3000);
             }
         }
