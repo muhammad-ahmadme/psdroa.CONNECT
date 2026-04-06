@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guest Feed | PSDROA.connect</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -23,32 +22,44 @@
         .sidebar { width: 275px; border-right: 1px solid var(--border-gray); padding: 10px 20px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
         .feed-content { flex: 1; max-width: 600px; border-right: 1px solid var(--border-gray); min-height: 100vh; }
 
-        /* Component Styles */
-        .post-card { padding: 15px; border-bottom: 1px solid var(--border-gray); display: flex; gap: 12px; transition: 0.2s; }
-        .post-card:hover { background: rgba(255,255,255,0.02); }
-        
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
-        
-        /* Threading CSS */
-        .reply-thread-container { margin-left: 52px; border-left: 2px solid var(--border-gray); }
-        .reply-card { padding: 10px 15px; display: flex; gap: 10px; font-size: 0.95rem; }
-        
-        .action-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; margin-top: 8px; transition: 0.2s; }
-        .action-btn:hover { color: var(--twitter-blue); }
-
-        .reply-input-box { display: none; padding: 10px 15px; gap: 10px; border-bottom: 1px solid var(--border-gray); background: rgba(29, 155, 240, 0.03); }
-
         /* Sidebar Nav */
         .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px; font-size: 1.2rem; cursor: pointer; border-radius: 30px; transition: 0.2s; margin: 4px 0; }
         .nav-item:hover { background: var(--bg-hover); }
         .nav-item.active { font-weight: bold; color: var(--twitter-blue); }
 
-        .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--twitter-blue); color: white; transition: 0.2s; }
+        /* Post & Threading Styles */
+        .post-card { padding: 15px; border-bottom: 1px solid var(--border-gray); display: flex; gap: 12px; transition: 0.2s; }
+        .post-card:hover { background: rgba(255,255,255,0.02); }
+        .reply-thread-container { margin-left: 52px; border-left: 2px solid var(--border-gray); display: none; }
+        .reply-card { padding: 10px 15px; display: flex; gap: 10px; font-size: 0.9rem; border-bottom: 1px solid rgba(47, 51, 54, 0.5); }
         
+        .toggle-replies-btn { 
+            background: none; border: none; color: var(--twitter-blue); 
+            cursor: pointer; font-size: 0.85rem; padding: 10px 52px; 
+            display: flex; align-items: center; gap: 5px; width: 100%;
+        }
+        .toggle-replies-btn:hover { background: rgba(29, 155, 240, 0.05); }
+
+        /* Messaging UI */
+        .dm-layout { display: flex; height: 75vh; border: 1px solid var(--border-gray); border-radius: 16px; overflow: hidden; margin: 20px; background: #000; }
+        .dm-sidebar { width: 35%; border-right: 1px solid var(--border-gray); background: rgba(255,255,255,0.02); overflow-y: auto; }
+        .dm-main { flex: 1; display: flex; flex-direction: column; background: #000; }
+        .convo-item { padding: 15px; border-bottom: 1px solid var(--border-gray); cursor: pointer; transition: 0.2s; }
+        .convo-item:hover { background: var(--bg-hover); }
+        .convo-item.active { background: rgba(29, 155, 240, 0.1); border-left: 4px solid var(--twitter-blue); }
+        #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+        .sent { align-self: flex-end; background: var(--twitter-blue); color: white; border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: #2f3336; color: white; border-bottom-left-radius: 2px; }
+
+        .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--twitter-blue); color: white; transition: 0.2s; }
+        .main-btn:hover { opacity: 0.9; }
+
         @media (max-width: 768px) {
-            .sidebar { width: 70px; }
+            .sidebar { width: 70px; padding: 10px; }
             .sidebar span { display: none; }
             .reply-thread-container { margin-left: 20px; }
+            .toggle-replies-btn { padding: 10px 20px; }
         }
     </style>
 </head>
@@ -77,7 +88,25 @@
             </section>
 
             <section id="messages-view" class="view-section" style="display:none">
-                </section>
+                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray);">Guest Messages</div>
+                <div class="dm-layout">
+                    <div class="dm-sidebar" id="convoList"></div>
+                    <div class="dm-main">
+                        <div id="chatWindow">
+                            <p style="color:var(--text-dim); text-align:center; margin-top:100px;">Select a conversation to start chatting.</p>
+                        </div>
+                        <div id="msgInputArea" style="padding:15px; border-top:1px solid var(--border-gray); display:none; gap:12px;">
+                            <input type="text" id="dmInput" placeholder="Start a message" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px; outline:none;">
+                            <button class="main-btn" onclick="sendDM()" style="width: auto; padding: 0 20px;">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile-view" class="view-section" style="display:none">
+                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-gray);">Profile</div>
+                <div id="profileContent" style="padding: 40px 20px; text-align: center;"></div>
+            </section>
         </main>
     </div>
 
@@ -87,6 +116,7 @@
         const _db = supabase.createClient(_URL, _KEY);
 
         let currentUser = null;
+        let activeChatId = null;
 
         async function handleLogout() { await _db.auth.signOut(); window.location.href = 'login-guest.html'; }
 
@@ -96,44 +126,55 @@
             document.getElementById(`${tab}-view`).style.display = 'block';
             if(el) el.classList.add('active');
             if(tab === 'home') loadPosts();
+            if(tab === 'messages') loadConvoList();
+            if(tab === 'profile') loadProfileData();
         }
 
-        // --- UPDATED FEED LOGIC WITH REPLIES ---
+        // --- FEED LOGIC ---
         async function loadPosts() {
-            const { data: allPosts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
-            
-            const mainPosts = (allPosts || []).filter(p => !p.parent_id);
-            const replies = (allPosts || []).filter(p => p.parent_id);
+            const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
+            renderPosts(posts || []);
+        }
 
+        function renderPosts(allPosts) {
             const container = document.getElementById('postsContainer');
+            const mainPosts = allPosts.filter(p => !p.parent_id);
+            const replies = allPosts.filter(p => p.parent_id);
+
             container.innerHTML = mainPosts.map(p => {
                 const postReplies = replies.filter(r => r.parent_id === p.id);
-                
+                const hasReplies = postReplies.length > 0;
+
                 return `
-                <div class="post-group" id="group-${p.id}">
+                <div class="post-group">
                     <div class="post-card">
-                        <div class="avatar">${p.username ? p.username[0].toUpperCase() : 'G'}</div>
+                        <div style="width:40px; height:40px; border-radius:50%; background:#333; display:flex; align-items:center; justify-content:center; font-weight:bold;">${p.username ? p.username[0].toUpperCase() : 'G'}</div>
                         <div style="flex:1">
-                            <div style="font-weight: bold;">@${p.username}</div>
-                            <div style="margin: 5px 0;">${p.content}</div>
-                            <button class="action-btn" onclick="toggleReply('${p.id}')">
+                            <div style="font-weight: bold; margin-bottom: 5px;">@${p.username} <span style="color:var(--text-dim); font-weight:normal; font-size:0.8rem;">• Guest</span></div>
+                            <div style="color: white;">${p.content}</div>
+                            <button class="action-btn" style="background:none; border:none; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; gap:5px; margin-top:10px;" onclick="toggleReplyInput('${p.id}')">
                                 <i data-lucide="message-circle" style="width:16px"></i> Reply
                             </button>
                         </div>
                     </div>
 
-                    <div id="reply-box-${p.id}" class="reply-input-box">
-                        <input type="text" id="input-${p.id}" placeholder="Post your reply" 
-                               style="flex:1; background:#16181c; border:none; color:white; padding:10px; border-radius:20px; outline:none;">
+                    ${hasReplies ? `
+                        <button class="toggle-replies-btn" id="toggle-btn-${p.id}" onclick="toggleThread('${p.id}')">
+                            <i data-lucide="chevron-down" style="width:14px"></i> Show ${postReplies.length} replies
+                        </button>
+                    ` : ''}
+
+                    <div id="reply-box-${p.id}" style="display:none; padding:10px 52px; gap:10px; background:rgba(29, 155, 240, 0.03);">
+                        <input type="text" id="input-${p.id}" placeholder="Post your reply" style="flex:1; background:#16181c; border:none; color:white; padding:8px 15px; border-radius:20px; outline:none;">
                         <button class="main-btn" style="width:auto; padding:5px 15px;" onclick="submitReply('${p.id}')">Reply</button>
                     </div>
 
-                    <div class="reply-thread-container">
+                    <div class="reply-thread-container" id="replies-${p.id}">
                         ${postReplies.map(r => `
                             <div class="reply-card">
-                                <div class="avatar" style="width:30px; height:30px; font-size:0.8rem;">${r.username[0].toUpperCase()}</div>
+                                <div style="width:30px; height:30px; border-radius:50%; background:#444; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">${r.username[0].toUpperCase()}</div>
                                 <div style="flex:1">
-                                    <div style="font-weight:bold; font-size:0.9rem;">@${r.username}</div>
+                                    <div style="font-weight:bold; font-size:0.85rem;">@${r.username}</div>
                                     <div style="color:#eff3f4;">${r.content}</div>
                                 </div>
                             </div>
@@ -141,31 +182,27 @@
                     </div>
                 </div>`;
             }).join('');
-            
             lucide.createIcons();
         }
 
-        function toggleReply(id) {
-            const box = document.getElementById(`reply-box-${id}`);
-            box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
-            if(box.style.display === 'flex') document.getElementById(`input-${id}`).focus();
+        function toggleThread(postId) {
+            const thread = document.getElementById(`replies-${postId}`);
+            const btn = document.getElementById(`toggle-btn-${postId}`);
+            const isHidden = thread.style.display === 'none' || thread.style.display === '';
+
+            if (isHidden) {
+                thread.style.display = 'block';
+                btn.innerHTML = `<i data-lucide="chevron-up" style="width:14px"></i> Hide replies`;
+            } else {
+                thread.style.display = 'none';
+                btn.innerHTML = `<i data-lucide="chevron-down" style="width:14px"></i> Show replies`;
+            }
+            lucide.createIcons();
         }
 
-        async function submitReply(parentId) {
-            const input = document.getElementById(`input-${parentId}`);
-            if(!input.value.trim()) return;
-
-            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            await _db.from('foreigner_posts').insert([{ 
-                user_id: currentUser.id, 
-                content: input.value, 
-                username: prof.username,
-                parent_id: parentId 
-            }]);
-
-            input.value = '';
-            toggleReply(parentId);
-            loadPosts();
+        function toggleReplyInput(postId) {
+            const box = document.getElementById(`reply-box-${postId}`);
+            box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
         }
 
         async function createPost() {
@@ -177,8 +214,72 @@
             loadPosts();
         }
 
+        async function submitReply(parentId) {
+            const input = document.getElementById(`input-${parentId}`);
+            if(!input.value.trim()) return;
+            const { data: prof } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: input.value, username: prof.username, parent_id: parentId }]);
+            input.value = '';
+            loadPosts();
+        }
+
+        // --- MESSAGING LOGIC ---
+        async function loadConvoList() {
+            const { data: profiles } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
+            const container = document.getElementById('convoList');
+            container.innerHTML = (profiles || []).map(p => `
+                <div class="convo-item" onclick="openChat('${p.id}', this)">
+                    <div style="font-weight:bold;">@${p.username}</div>
+                </div>
+            `).join('');
+        }
+
+        async function openChat(userId, el) {
+            activeChatId = userId;
+            document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('msgInputArea').style.display = 'flex';
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            if (!activeChatId) return;
+            const { data: msgs } = await _db.from('messages').select('*')
+                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`)
+                .order('created_at', { ascending: true });
+
+            const win = document.getElementById('chatWindow');
+            win.innerHTML = (msgs || []).map(m => `
+                <div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>
+            `).join('');
+            win.scrollTop = win.scrollHeight;
+        }
+
+        async function sendDM() {
+            const input = document.getElementById('dmInput');
+            if (!input.value.trim() || !activeChatId) return;
+            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: input.value }]);
+            input.value = '';
+            loadMessages();
+        }
+
+        async function loadProfileData() {
+            const { data: prof } = await _db.from('profiles').select('*').eq('id', currentUser.id).single();
+            const { count } = await _db.from('foreigner_posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+            document.getElementById('profileContent').innerHTML = `
+                <div style="width:100px; height:100px; background:var(--twitter-blue); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:900;">${prof.username[0].toUpperCase()}</div>
+                <h2>@${prof.username}</h2>
+                <p style="color:var(--text-dim);">${currentUser.email}</p>
+                <div style="display:flex; justify-content:center; gap:40px; margin-top:30px; border-top:1px solid var(--border-gray); padding-top:20px;">
+                    <div><div style="font-size:1.2rem; font-weight:bold;">${count || 0}</div><div style="font-size:0.8rem; color:var(--text-dim);">Posts</div></div>
+                    <div><div style="font-size:1.2rem; font-weight:bold; color:var(--twitter-blue);">Guest</div><div style="font-size:0.8rem; color:var(--text-dim);">Account</div></div>
+                </div>`;
+        }
+
         function setupRealtime() {
-            _db.channel('guest-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => {
+            _db.channel('updates').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
+                if (activeChatId && (payload.new.sender_id === activeChatId || payload.new.receiver_id === activeChatId)) loadMessages();
+            }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => {
                 loadPosts();
             }).subscribe();
         }
