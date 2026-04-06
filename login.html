@@ -1,40 +1,43 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login / PSDROA.connect</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="center-body">
-    <div class="auth-box login-box">
-        <div class="logo-center">P.</div>
-        <h2>Sign in to PSDROA</h2>
+<body class="auth-wrapper"> <div class="auth-box"> <div class="nav-logo" style="padding: 0; margin-bottom: 20px;">P.</div>
+        <h1>Sign in to PSDROA</h1>
         
-        <div id="loginError" class="error-banner"></div>
+        <div id="loginError" class="error-banner" style="display: none;"></div>
 
-        <div class="input-group">
-            <input type="email" id="loginEmail" placeholder="School Email">
-            <input type="password" id="loginPass" placeholder="Password">
+        <div class="login-form-container">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="School Email" required>
+            
+            <label for="loginPass">Password</label>
+            <input type="password" id="loginPass" placeholder="Password" required>
+            
+            <button class="main-btn" onclick="handleSignIn()">Log In</button>
         </div>
         
-        <button class="main-btn" onclick="handleSignIn()">Log In</button>
-        
-        <p class="footer-text">New here? <a href="index.html">Request Access</a></p>
+        <div class="auth-footer" style="margin-top: 30px; text-align: center;">
+            <p style="color: var(--text-dim);">New here? 
+                <a href="index.html" style="color: var(--twitter-blue); text-decoration: none; font-weight: 600;">Request Access</a>
+            </p>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 (function() {
-    // We use internal names to avoid "Already Declared" errors
+    // Project Config
     const PROJECT_URL = 'https://riyqmlarvhipiwrhvuiw.supabase.co';
     const ANON_KEY = 'sb_publishable_V1xXAdHLwMRjQuR5BHaG7A_6jat6I_E';
     
-    // Initialize the client
+    // Initialize Supabase
     const _supabase = supabase.createClient(PROJECT_URL, ANON_KEY);
 
-    // We attach this to 'window' so your HTML button onclick="handleSignIn()" can find it
     window.handleSignIn = async function() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPass').value;
@@ -42,10 +45,15 @@
 
         // Reset UI
         errorBox.style.display = 'none';
-        console.log("Attempting login for:", email);
+        
+        if (!email || !password) {
+            errorBox.innerText = "Please fill in all fields.";
+            errorBox.style.display = 'block';
+            return;
+        }
 
         try {
-            // 1. Authenticate with Supabase
+            // 1. Authenticate
             const { data, error: authError } = await _supabase.auth.signInWithPassword({
                 email: email,
                 password: password,
@@ -57,31 +65,30 @@
                 return;
             }
 
-            // 2. Check the 'profiles' table for the 24h Approval
+            // 2. Check Profile Verification
             const { data: profile, error: profileError } = await _supabase
                 .from('profiles')
                 .select('is_verified')
                 .eq('id', data.user.id)
                 .single();
 
-            // If the profile doesn't exist or isn't verified yet
             if (profileError || !profile.is_verified) {
                 errorBox.innerText = "Access Pending. Please wait 24h for admin approval.";
                 errorBox.style.display = 'block';
-                
-                // Log them out so they don't stay in a "half-logged-in" state
                 await _supabase.auth.signOut();
                 return;
             }
 
-            // 3. Success!
+            // 3. Success
             window.location.href = 'feed.html';
 
         } catch (err) {
             console.error("Login System Error:", err);
-            errorBox.innerText = "System error. Please try again later.";
+            errorBox.innerText = "System error. Please try again.";
             errorBox.style.display = 'block';
         }
     };
 })();
 </script>
+</body>
+</html>
