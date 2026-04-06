@@ -10,34 +10,96 @@
         :root {
             --connect-blue: #00a2ff;
             --border-dark: #2f3336;
+            --text-main: #eff3f4;
             --text-dim: #71767b;
             --bg-black: #000;
             --bg-hover: rgba(255, 255, 255, 0.05);
         }
-        body { background-color: var(--bg-black); color: white; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+        body { 
+            background-color: var(--bg-black); 
+            color: var(--text-main); 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            overflow-x: hidden; 
+        }
         
-        /* Layout */
+        /* Layout Structure */
         .app-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 275px; border-right: 1px solid var(--border-dark); padding: 10px 20px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+        .sidebar { 
+            width: 275px; 
+            border-right: 1px solid var(--border-dark); 
+            padding: 10px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            position: sticky; 
+            top: 0; 
+            height: 100vh; 
+        }
         .feed-content { flex: 1; max-width: 600px; border-right: 1px solid var(--border-dark); min-height: 100vh; }
 
-        /* Navigation */
-        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px; font-size: 1.2rem; cursor: pointer; border-radius: 30px; transition: 0.2s; margin: 4px 0; }
+        /* Navigation Links */
+        .nav-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            padding: 12px; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            border-radius: 30px; 
+            transition: 0.2s; 
+            margin: 4px 0; 
+            color: var(--text-main);
+            text-decoration: none;
+        }
         .nav-item:hover { background: var(--bg-hover); }
         .nav-item.active { font-weight: bold; color: var(--connect-blue); }
 
-        /* Search & Feed */
-        .search-container { padding: 10px 15px; position: sticky; top: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-dark); z-index: 10; }
-        .search-input { width: 100%; background: #202327; border: 1px solid transparent; color: white; padding: 12px 15px; border-radius: 20px; outline: none; transition: 0.2s; }
+        /* Search Header */
+        .search-container { 
+            padding: 10px 15px; 
+            position: sticky; 
+            top: 0; 
+            background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(10px); 
+            border-bottom: 1px solid var(--border-dark); 
+            z-index: 10; 
+        }
+        .search-input { 
+            width: 100%; 
+            background: #202327; 
+            border: 1px solid transparent; 
+            color: white; 
+            padding: 12px 15px; 
+            border-radius: 20px; 
+            outline: none; 
+            transition: 0.2s; 
+        }
         .search-input:focus { border-color: var(--connect-blue); background: black; }
 
-        .post-card { padding: 15px; border-bottom: 1px solid var(--border-dark); display: flex; gap: 12px; }
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; flex-shrink: 0; }
-        
+        /* Post & Thread Styling */
+        .post-card { padding: 15px; display: flex; gap: 12px; transition: 0.2s; }
+        .user-avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background: #333; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            font-weight: bold; 
+            flex-shrink: 0; 
+        }
         .username-link { font-weight: bold; cursor: pointer; color: white; text-decoration: none; }
         .username-link:hover { text-decoration: underline; color: var(--connect-blue); }
+        
+        .reply-thread { 
+            margin-left: 52px; 
+            border-left: 2px solid var(--border-dark); 
+            padding-left: 10px;
+        }
 
-        /* Messaging */
+        /* Messaging UI */
         .dm-layout { display: flex; height: 75vh; border: 1px solid var(--border-dark); border-radius: 16px; overflow: hidden; margin: 20px; }
         .dm-sidebar { width: 35%; border-right: 1px solid var(--border-dark); overflow-y: auto; }
         .dm-main { flex: 1; display: flex; flex-direction: column; }
@@ -45,13 +107,30 @@
         .convo-item.active { background: rgba(0, 162, 255, 0.1); border-left: 4px solid var(--connect-blue); }
         #chatWindow { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .bubble { max-width: 75%; padding: 10px 15px; border-radius: 18px; }
-        .sent { align-self: flex-end; background: var(--connect-blue); }
-        .received { align-self: flex-start; background: #2f3336; }
+        .sent { align-self: flex-end; background: var(--connect-blue); color: white; }
+        .received { align-self: flex-start; background: #2f3336; color: white; }
 
-        /* Components */
-        .main-btn { width: 100%; padding: 12px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; background: var(--connect-blue); color: white; transition: 0.2s; }
-        .main-btn:hover { opacity: 0.9; }
-        .follow-btn { background: white; color: black; border-radius: 20px; padding: 8px 25px; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; }
+        /* Buttons */
+        .main-btn { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 30px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            background: var(--connect-blue); 
+            color: white; 
+        }
+        .follow-btn { 
+            background: white; 
+            color: black; 
+            border-radius: 20px; 
+            padding: 8px 25px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: none; 
+            margin-top: 15px; 
+        }
         .follow-btn.unfollow { background: transparent; color: white; border: 1px solid var(--border-dark); }
 
         @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar span { display: none; } }
@@ -60,7 +139,9 @@
 <body>
     <div class="app-container">
         <aside class="sidebar">
-            <div style="font-weight: 900; font-size: 1.8rem; padding: 20px 10px;">PSDROA.<span style="color:var(--connect-blue)">connect</span></div>
+            <div style="font-weight: 900; font-size: 1.8rem; padding: 20px 10px; cursor: pointer;" onclick="location.reload()">
+                PSDROA.<span style="color:var(--connect-blue)">connect</span>
+            </div>
             <nav>
                 <div id="nav-home" class="nav-item active" onclick="switchTab('home', this)"><i data-lucide="globe"></i> <span>Global Feed</span></div>
                 <div id="nav-messages" class="nav-item" onclick="switchTab('messages', this)"><i data-lucide="mail"></i> <span>Messages</span></div>
@@ -72,10 +153,10 @@
         <main class="feed-content">
             <section id="home-view" class="view-section">
                 <div class="search-container">
-                    <input type="text" id="feedSearch" class="search-input" placeholder="Search Connect..." oninput="loadPosts()">
+                    <input type="text" id="feedSearch" class="search-input" placeholder="Search Connect Network..." oninput="loadPosts()">
                 </div>
                 <div style="padding: 20px; border-bottom: 1px solid var(--border-dark);">
-                    <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.2rem; resize:none; outline:none;" placeholder="What's happening in the network?"></textarea>
+                    <textarea id="postInput" style="width:100%; background:transparent; border:none; color:white; font-size: 1.2rem; resize:none; outline:none;" placeholder="Post a global update..."></textarea>
                     <div style="display: flex; justify-content: flex-end; padding-top: 15px;">
                         <button class="main-btn" style="width:auto; padding: 8px 25px;" onclick="createPost()">Post</button>
                     </div>
@@ -84,13 +165,13 @@
             </section>
 
             <section id="messages-view" class="view-section" style="display:none">
-                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-dark);">Private Conversations</div>
+                <div style="padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border-dark);">Direct Messages</div>
                 <div class="dm-layout">
                     <div class="dm-sidebar" id="convoList"></div>
                     <div class="dm-main">
                         <div id="chatWindow"></div>
                         <div id="msgInputArea" style="padding:15px; border-top:1px solid var(--border-dark); display:none; gap:12px;">
-                            <input type="text" id="dmInput" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px;" placeholder="Write a message...">
+                            <input type="text" id="dmInput" style="flex:1; background: #16181c; border: none; color:white; padding: 12px; border-radius: 25px;" placeholder="Message...">
                             <button class="main-btn" onclick="sendDM()" style="width: auto; padding: 0 20px;">Send</button>
                         </div>
                     </div>
@@ -124,43 +205,111 @@
             if(tab === 'profile') loadProfileData();
         }
 
+        /* --- POSTS & FEED LOGIC --- */
         async function loadPosts() {
             const query = (document.getElementById('feedSearch').value || "").toLowerCase();
-            const { data: posts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
-            if (!posts) return;
-            const filtered = posts.filter(p => p.content.toLowerCase().includes(query) || (p.username && p.username.toLowerCase().includes(query)));
-            renderPosts(filtered, posts);
+            const { data: allPosts } = await _db.from('foreigner_posts').select('*').order('created_at', { ascending: false });
+            
+            if (!allPosts) return;
+
+            // Non-case sensitive global filter
+            const filtered = allPosts.filter(p => 
+                p.content.toLowerCase().includes(query) || 
+                (p.username && p.username.toLowerCase().includes(query))
+            );
+
+            renderPosts(filtered, allPosts);
         }
 
         function renderPosts(displayPosts, allPostsRaw) {
             const container = document.getElementById('postsContainer');
             const mainPosts = displayPosts.filter(p => !p.parent_id);
-            container.innerHTML = mainPosts.map(p => `
-                <div class="post-card">
-                    <div class="user-avatar" onclick="viewUserProfile('${p.user_id}')">${p.username ? p.username[0].toUpperCase() : 'C'}</div>
-                    <div style="flex:1">
-                        <span class="username-link" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
-                        <div style="margin-top:5px;">${p.content}</div>
+            const replies = allPostsRaw.filter(p => p.parent_id);
+
+            container.innerHTML = mainPosts.map(p => {
+                const postReplies = replies.filter(r => r.parent_id === p.id);
+                return `
+                <div class="post-group" style="border-bottom: 1px solid var(--border-dark);">
+                    <div class="post-card">
+                        <div class="user-avatar" onclick="viewUserProfile('${p.user_id}')">
+                            ${p.username ? p.username[0].toUpperCase() : 'C'}
+                        </div>
+                        <div style="flex:1">
+                            <span class="username-link" onclick="viewUserProfile('${p.user_id}')">@${p.username}</span>
+                            <div style="margin-top:5px;">${p.content}</div>
+                            <button style="background:none; border:none; color:var(--text-dim); cursor:pointer; margin-top:10px; font-size:0.8rem;" onclick="toggleReplyInput('${p.id}')">
+                                <i data-lucide="message-circle" style="width:12px; height:12px;"></i> Reply
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+
+                    <div id="reply-box-${p.id}" style="display:none; padding:0 15px 15px 65px; gap:10px;">
+                        <input type="text" id="input-${p.id}" placeholder="Post your reply..." style="flex:1; background:#16181c; border:none; color:white; padding:8px 15px; border-radius:20px; outline:none;">
+                        <button class="main-btn" style="width:auto; padding: 5px 15px; font-size:0.8rem;" onclick="submitReply('${p.id}')">Reply</button>
+                    </div>
+
+                    ${postReplies.length > 0 ? `
+                        <button style="background:none; border:none; color:var(--connect-blue); cursor:pointer; padding: 0 0 15px 65px; font-size:0.85rem;" onclick="toggleThread('${p.id}')" id="btn-${p.id}">
+                            Show ${postReplies.length} replies
+                        </button>
+                    ` : ''}
+
+                    <div id="thread-${p.id}" class="reply-thread" style="display:none;">
+                        ${postReplies.map(r => `
+                            <div style="padding: 10px 0; border-bottom: 1px solid rgba(47,51,54,0.3); font-size:0.9rem;">
+                                <span class="username-link" onclick="viewUserProfile('${r.user_id}')">@${r.username}</span>: ${r.content}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }).join('');
             lucide.createIcons();
         }
 
+        /* --- REPLIES & ACTIONS --- */
+        function toggleReplyInput(id) {
+            const b = document.getElementById(`reply-box-${id}`);
+            b.style.display = b.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function toggleThread(id) {
+            const t = document.getElementById(`thread-${id}`);
+            const btn = document.getElementById(`btn-${id}`);
+            const isH = t.style.display === 'none';
+            t.style.display = isH ? 'block' : 'none';
+            btn.innerText = isH ? 'Hide replies' : `Show ${t.children.length} replies`;
+        }
+
+        async function createPost() { 
+            const inp = document.getElementById('postInput');
+            if(!inp.value.trim()) return;
+            const { data: myProf } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: myProf.username }]);
+            inp.value = ''; loadPosts(); 
+        }
+
+        async function submitReply(pid) { 
+            const inp = document.getElementById(`input-${pid}`);
+            if(!inp.value.trim()) return;
+            const { data: myProf } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
+            await _db.from('foreigner_posts').insert([{ user_id: currentUser.id, content: inp.value, username: myProf.username, parent_id: pid }]);
+            inp.value = ''; loadPosts(); 
+        }
+
+        /* --- PROFILE & FOLLOWERS --- */
         function viewUserProfile(uid) { switchTab('profile', document.getElementById('nav-profile')); loadProfileData(uid); }
 
         async function loadProfileData(targetUserId = null) {
             const displayId = targetUserId || currentUser.id;
             const isOwn = displayId === currentUser.id;
-            
             const { data: targetProf } = await _db.from('profiles').select('*').eq('id', displayId).single();
             const { count: followers } = await _db.from('followers').select('*', { count: 'exact', head: true }).eq('following_id', displayId);
             const { count: following } = await _db.from('followers').select('*', { count: 'exact', head: true }).eq('follower_id', displayId);
             
             let isFollowing = false;
             if (!isOwn) {
-                const { data: followCheck } = await _db.from('followers').select('*').eq('follower_id', currentUser.id).eq('following_id', displayId).single();
-                isFollowing = !!followCheck;
+                const { data: check } = await _db.from('followers').select('*').eq('follower_id', currentUser.id).eq('following_id', displayId).single();
+                isFollowing = !!check;
             }
 
             document.getElementById('profileContent').innerHTML = `
@@ -185,33 +334,52 @@
             loadProfileData(targetId);
         }
 
-        async function createPost() { 
-            const inp = document.getElementById('postInput');
-            if(!inp.value.trim()) return;
-            const { data: myProf } = await _db.from('profiles').select('username').eq('id', currentUser.id).single();
-            
-            const postData = { user_id: currentUser.id, content: inp.value, username: myProf.username };
-            await _db.from('foreigner_posts').insert([postData]);
-            
-            // Backup Placeholder for Infinite Storage Purge-Proofing
-            // syncToShadowDB(postData);
-
-            inp.value = ''; loadPosts(); 
+        /* --- MESSAGING --- */
+        function startChat(uid) { switchTab('messages', document.getElementById('nav-messages')); setTimeout(() => openChat(uid, null), 100); }
+        async function loadConvoList() { 
+            const { data: profiles } = await _db.from('profiles').select('id, username').neq('id', currentUser.id);
+            document.getElementById('convoList').innerHTML = (profiles || []).map(p => `
+                <div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>
+            `).join(''); 
+        }
+        async function openChat(uid, el) { 
+            activeChatId = uid; 
+            if(el) { 
+                document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active')); 
+                el.classList.add('active'); 
+            } 
+            document.getElementById('msgInputArea').style.display = 'flex'; 
+            loadMessages(); 
+        }
+        async function loadMessages() { 
+            if (!activeChatId) return; 
+            const { data: msgs } = await _db.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true }); 
+            const win = document.getElementById('chatWindow'); 
+            win.innerHTML = (msgs || []).map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join(''); 
+            win.scrollTop = win.scrollHeight; 
+        }
+        async function sendDM() { 
+            const inp = document.getElementById('dmInput'); 
+            if(!inp.value.trim()) return; 
+            await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value }]); 
+            inp.value = ''; loadMessages(); 
         }
 
-        /* Messaging Helpers */
-        function startChat(uid) { switchTab('messages', document.getElementById('nav-messages')); setTimeout(() => openChat(uid, null), 100); }
-        async function loadConvoList() { const { data: profiles } = await _db.from('profiles').select('id, username').neq('id', currentUser.id); document.getElementById('convoList').innerHTML = (profiles || []).map(p => `<div class="convo-item" onclick="openChat('${p.id}', this)"><b>@${p.username}</b></div>`).join(''); }
-        async function openChat(uid, el) { activeChatId = uid; if(el) { document.querySelectorAll('.convo-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); } document.getElementById('msgInputArea').style.display = 'flex'; loadMessages(); }
-        async function loadMessages() { if (!activeChatId) return; const { data: msgs } = await _db.from('messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatId}),and(sender_id.eq.${activeChatId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true }); const win = document.getElementById('chatWindow'); win.innerHTML = (msgs || []).map(m => `<div class="bubble ${m.sender_id === currentUser.id ? 'sent' : 'received'}">${m.content}</div>`).join(''); win.scrollTop = win.scrollHeight; }
-        async function sendDM() { const inp = document.getElementById('dmInput'); if(!inp.value.trim()) return; await _db.from('messages').insert([{ sender_id: currentUser.id, receiver_id: activeChatId, content: inp.value }]); inp.value = ''; loadMessages(); }
-
+        /* --- INITIALIZATION --- */
         async function init() {
             const { data: { user } } = await _db.auth.getUser();
             if (!user) return window.location.href = 'login.html';
             currentUser = user; 
             loadPosts();
-            _db.channel('updates').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => { if (activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages(); }).on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts()).subscribe();
+            
+            // Realtime listeners
+            _db.channel('updates')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => { 
+                    if (activeChatId && (p.new.sender_id === activeChatId || p.new.receiver_id === activeChatId)) loadMessages(); 
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'foreigner_posts' }, () => loadPosts())
+                .subscribe();
+            
             lucide.createIcons();
         }
         init();
